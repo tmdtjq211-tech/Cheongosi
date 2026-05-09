@@ -22,7 +22,7 @@
       border-radius: 10px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
       width: 100%;
-      max-width: 700px;
+      max-width: 750px; /* 테이블 크기를 고려해 약간 넓힘 */
       position: relative;
     }
     h2 { text-align: center; color: #333; margin-bottom: 25px; }
@@ -71,7 +71,7 @@
     }
     
     table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th, td { border: 1px solid #ddd; padding: 10px; text-align: center; font-size: 14px; }
+    th, td { border: 1px solid #ddd; padding: 10px; text-align: center; font-size: 13px; }
     th { background-color: #f2f2f2; }
     
     .hidden { display: none !important; }
@@ -263,15 +263,23 @@
 
     <!-- 현황 탭 -->
     <div id="admin-status" class="hidden">
-      <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+      <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom: 10px;">
         <h3 style="margin:0;">제출 목록</h3>
-        <div id="admin-unique-count" style="font-weight:bold; color:#e91e63; font-size:16px;">총 실제 응시자: 0명 (중복 제외)</div>
+        <div style="display:flex; align-items:center; gap:15px;">
+          <!-- 정렬 드롭다운 추가 -->
+          <select id="sort-mode" onchange="window.applySorting()" style="padding: 5px; border-radius: 4px; border:1px solid #ccc; font-weight:bold;">
+            <option value="dateDesc">최신 날짜순</option>
+            <option value="scoreDesc">최고 점수순</option>
+            <option value="regionAsc">지역 / 가나다순</option>
+          </select>
+          <div id="admin-unique-count" style="font-weight:bold; color:#e91e63; font-size:15px;">총 실제 응시자: 0명 (중복 제외)</div>
+        </div>
       </div>
       <div style="overflow-x: auto;">
         <table>
-          <thead><tr><th>부서</th><th>지역/구역</th><th>성함</th><th>난이도(순서)</th><th>점수</th><th>재시험여부</th><th>시험지</th></tr></thead>
+          <thead><tr><th>부서</th><th>지역/구역</th><th>성함</th><th>난이도(순서)</th><th>점수</th><th>재시험</th><th>응시날짜</th><th>시험지</th></tr></thead>
           <tbody id="admin-table-body">
-            <tr><td colspan="7">데이터를 불러오는 중입니다...</td></tr>
+            <tr><td colspan="8">데이터를 불러오는 중입니다...</td></tr>
           </tbody>
         </table>
       </div>
@@ -321,6 +329,9 @@
   let customBlanksDB = {};
   let currentUser = {};
   let allResultsData = []; 
+  
+  // 브라우저 캐싱용 유저 그룹 리스트 (정렬 기능에 사용)
+  window.userListGrouped = [];
 
   window.onload = async function() {
     try {
@@ -377,11 +388,9 @@
     window.scrollTo(0, 0);
   }
 
-  // ★ 서술형 후보 지정 파싱 로직 (계, 띄어쓰기, 물결표시 등 예외처리)
   function parseEssayTargets(groupStr) {
     let targets = [];
     if(!groupStr) return targets;
-    // "계", 띄어쓰기 제거, "~"를 "-"로 변환
     let cleaned = groupStr.replace(/계/g, '').replace(/\s+/g, '').replace(/~/g, '-');
     let items = cleaned.split(',');
     
@@ -404,7 +413,6 @@
     const container = document.getElementById('question-container');
     container.innerHTML = '';
     
-    // 1. 할당량 세팅
     let numBlank = 0, numEssay = 0;
     if (difficulty === '초급') { numBlank = examSettings.lowBlankCnt; numEssay = examSettings.lowEssayCnt; }
     else if (difficulty === '중급') { numBlank = examSettings.midBlankCnt; numEssay = examSettings.midEssayCnt; }
@@ -412,21 +420,16 @@
 
     let totalQuestions = numBlank + numEssay;
 
-    // 2. 관리자가 지정한 서술형 후보들 (이 중에서만 서술형 출제)
     let essayTargets = parseEssayTargets(examSettings.groupedVerses);
-    essayTargets.sort(() => Math.random() - 0.5); // 랜덤 섞기
+    essayTargets.sort(() => Math.random() - 0.5); 
     
-    // 할당량(numEssay)과 실제 지정된 후보 수 중 작은 값을 취함
     let actualEssayCount = Math.min(numEssay, essayTargets.length);
     let selectedEssays = essayTargets.slice(0, actualEssayCount);
-    
-    // 서술형으로 배정되지 못한 나머지 공간은 전부 빈칸 문제로 넘김
     let actualBlankCount = totalQuestions - actualEssayCount;
 
     let usedKeys = new Set();
     let finalQuestions = [];
 
-    // 3. 선택된 서술형 객체 생성
     selectedEssays.forEach(target => {
       if(target.isGroup) {
         let combinedText = "";
@@ -447,7 +450,6 @@
       }
     });
 
-    // 4. 나머지 모든 절들을 빈칸 문제 후보로 수집
     let blankCandidates = [];
     for (let ch = examSettings.startCh; ch <= examSettings.endCh; ch++) {
       if(bibleData[ch]) {
@@ -459,7 +461,6 @@
       }
     }
 
-    // 5. 빈칸 문제 뽑기 (수동 모드 시 수동DB에 있는 단어 우선 추출)
     if (examSettings.blankMode === 'manual') {
       let manualKeys = Object.keys(customBlanksDB);
       let priorityBlanks = blankCandidates.filter(c => manualKeys.includes(`${c.ch}:${c.vs}`));
@@ -481,7 +482,6 @@
       });
     }
 
-    // 6. 응시자가 선택한 순서 모드(랜덤/순차) 적용
     if (currentUser.orderMode === 'sequential') {
       finalQuestions.sort((a, b) => {
         if (a.ch !== b.ch) return a.ch - b.ch;
@@ -493,7 +493,6 @@
       finalQuestions.sort(() => Math.random() - 0.5);
     }
     
-    // 7. 화면에 렌더링
     let qIndex = 1;
     finalQuestions.forEach((verseInfo) => {
       const qBox = document.createElement('div');
@@ -550,7 +549,6 @@
     });
   }
 
-  // 띄어쓰기 및 문장부호 무시 채점 로직
   function normalizeText(text) {
     return text.replace(/[\s\.\,\?\!\'\"]/g, '');
   }
@@ -672,7 +670,7 @@
     } else {
       document.querySelectorAll('.admin-tab')[2].classList.add('active');
       document.getElementById('admin-status').classList.remove('hidden');
-      await loadAdminStatus();
+      await window.loadAdminStatus(); // DB에서 로드 후 정렬
     }
   }
 
@@ -730,9 +728,10 @@
     alert("저장되었습니다.");
   }
 
-  async function loadAdminStatus() {
+  // ★ 관리자 현황 로드 (DB에서 가져와서 userListGrouped에 저장)
+  window.loadAdminStatus = async function() {
     const tbody = document.getElementById('admin-table-body');
-    tbody.innerHTML = '<tr><td colspan="7">데이터를 불러오는 중입니다...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8">데이터를 불러오는 중입니다...</td></tr>';
     allResultsData = [];
 
     try {
@@ -747,54 +746,94 @@
         
         const key = `${data.region}_${data.department}_${data.district}_${data.name}`;
         if (!userMap[key]) {
-          userMap[key] = { info: data, attempts: [data] };
+          userMap[key] = { 
+            info: data, 
+            attempts: [data],
+            maxScore: data.score,
+            latestDate: data.timestamp.seconds
+          };
         } else {
           userMap[key].attempts.push(data);
+          if (data.score > userMap[key].maxScore) userMap[key].maxScore = data.score;
+          if (data.timestamp.seconds > userMap[key].latestDate) userMap[key].latestDate = data.timestamp.seconds;
         }
       });
 
-      const userList = Object.values(userMap);
-      userList.sort((a, b) => {
+      window.userListGrouped = Object.values(userMap);
+      document.getElementById('admin-unique-count').innerText = `총 실제 응시자: ${window.userListGrouped.length}명 (중복 제외)`;
+      
+      // 데이터 로드 후 즉시 정렬 적용
+      window.applySorting();
+
+    } catch (e) {
+      console.error("데이터 로드 실패:", e);
+      tbody.innerHTML = '<tr><td colspan="8">실패했습니다.</td></tr>';
+    }
+  }
+
+  // ★ 정렬 적용 및 렌더링 (DB 통신 없이 즉각 반영)
+  window.applySorting = function() {
+    const mode = document.getElementById('sort-mode').value;
+    const tbody = document.getElementById('admin-table-body');
+    
+    if(!window.userListGrouped || window.userListGrouped.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="8">응시 기록이 없습니다.</td></tr>';
+      return;
+    }
+
+    // 배열 복사 후 정렬
+    let sortedList = [...window.userListGrouped];
+
+    if (mode === 'dateDesc') {
+      // 최신 날짜순 (내림차순)
+      sortedList.sort((a, b) => b.latestDate - a.latestDate);
+    } else if (mode === 'scoreDesc') {
+      // 점수 높은순 (내림차순)
+      sortedList.sort((a, b) => b.maxScore - a.maxScore);
+    } else if (mode === 'regionAsc') {
+      // 지역/가나다순 (오름차순)
+      sortedList.sort((a, b) => {
         if (a.info.region < b.info.region) return -1;
         if (a.info.region > b.info.region) return 1;
         if (a.info.name < b.info.name) return -1;
         if (a.info.name > b.info.name) return 1;
         return 0;
       });
-
-      // 실제 응시자수 업데이트
-      document.getElementById('admin-unique-count').innerText = `총 실제 응시자: ${userList.length}명 (중복 제외)`;
-
-      tbody.innerHTML = '';
-      if(userList.length === 0) { tbody.innerHTML = '<tr><td colspan="7">응시 기록이 없습니다.</td></tr>'; return; }
-
-      userList.forEach(u => {
-        let scores = u.attempts.map(att => att.score).sort((a,b) => b-a);
-        const scoreString = scores.join(', ');
-        
-        const isRetake = u.attempts.length > 1;
-        const retakeStr = isRetake ? `<span style="color:#e91e63; font-weight:bold;">O (${u.attempts.length}회)</span>` : `<span style="color:#999;">X</span>`;
-        const userKey = `${u.info.region}_${u.info.department}_${u.info.district}_${u.info.name}`;
-        
-        // 순서/랜덤 여부 표시
-        const orderStr = u.attempts[0].orderMode === 'sequential' ? '순서' : '랜덤';
-
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${u.info.department}</td>
-          <td>${u.info.region} / ${u.info.district}</td>
-          <td style="font-weight:bold;">${isRetake ? '(재) ' : ''}${u.info.name}</td>
-          <td>${u.info.difficulty} <br><span style="font-size:12px; color:#666;">(${orderStr})</span></td>
-          <td style="color:#2e7d32; font-weight:bold;">${scoreString}</td>
-          <td>${retakeStr}</td>
-          <td><button class="btn-small" onclick="window.openPaperModal('${userKey}')">시험지 보기</button></td>
-        `;
-        tbody.appendChild(tr);
-      });
-    } catch (e) {
-      console.error("데이터 로드 실패:", e);
-      tbody.innerHTML = '<tr><td colspan="7">실패했습니다.</td></tr>';
     }
+
+    tbody.innerHTML = '';
+
+    sortedList.forEach(u => {
+      let scores = u.attempts.map(att => att.score).sort((a,b) => b-a);
+      const scoreString = scores.join(', ');
+      
+      const isRetake = u.attempts.length > 1;
+      const retakeStr = isRetake ? `<span style="color:#e91e63; font-weight:bold;">O (${u.attempts.length}회)</span>` : `<span style="color:#999;">X</span>`;
+      const userKey = `${u.info.region}_${u.info.department}_${u.info.district}_${u.info.name}`;
+      
+      const orderStr = u.attempts[0].orderMode === 'sequential' ? '순서' : '랜덤';
+
+      // 날짜 포맷 (예: 05.10 14:30)
+      const dateObj = new Date(u.latestDate * 1000);
+      const m = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+      const d = dateObj.getDate().toString().padStart(2, '0');
+      const h = dateObj.getHours().toString().padStart(2, '0');
+      const min = dateObj.getMinutes().toString().padStart(2, '0');
+      const dateStr = `${m}.${d} ${h}:${min}`;
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${u.info.department}</td>
+        <td>${u.info.region} / ${u.info.district}</td>
+        <td style="font-weight:bold;">${isRetake ? '(재) ' : ''}${u.info.name}</td>
+        <td>${u.info.difficulty} <br><span style="font-size:12px; color:#666;">(${orderStr})</span></td>
+        <td style="color:#2e7d32; font-weight:bold;">${scoreString}</td>
+        <td>${retakeStr}</td>
+        <td style="font-size:13px; color:#555;">${dateStr}</td>
+        <td><button class="btn-small" onclick="window.openPaperModal('${userKey}')">보기</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
   }
 
   window.openPaperModal = function(userKey) {
