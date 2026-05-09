@@ -198,7 +198,7 @@
       </div>
 
       <div class="settings-group">
-        <label>출제 범위 (기본 단일 절)</label>
+        <label>기본 출제 범위 (장 범위)</label>
         <div style="display: flex; gap: 10px; align-items: center; margin-top:5px;">
           <input type="number" id="set-start" min="1" max="22" style="width: 80px;"> 장 ~
           <input type="number" id="set-end" min="1" max="22" style="width: 80px;"> 장
@@ -206,9 +206,9 @@
       </div>
 
       <div class="settings-group">
-        <label style="color:#e91e63;">서술형 범위 묶기 (여러 절을 하나의 서술형 문제로)</label>
-        <p style="font-size:12px; color:#666; margin:5px 0;">작성 예시: 7:1-4, 12:1-3 (쉼표로 구분하여 작성하세요)</p>
-        <input type="text" id="set-grouped-verses" placeholder="예: 7:1-4, 12:1-3">
+        <label style="color:#e91e63;">서술형 출제 후보 지정 (이곳에 적힌 절만 서술형으로 나옵니다)</label>
+        <p style="font-size:12px; color:#666; margin:5px 0;">단일 절, 혹은 여러 절 묶음을 쉼표로 구분하여 적어주세요. 나머지는 전부 빈칸 문제로 자동 전환됩니다.<br>작성 예시: 계7:2~3, 계 7:14, 8:1</p>
+        <input type="text" id="set-grouped-verses" placeholder="예: 7:2~3, 7:14, 8:1">
       </div>
 
       <div class="settings-group">
@@ -227,14 +227,14 @@
           빈칸 (1개당): <input type="number" id="set-pt-blank" style="width: 60px;"> 점<br><br>
           단일 서술 (1문제당): <input type="number" id="set-pt-essay" style="width: 60px;"> 점
         </div>
-        <p style="font-size:12px; color:#666;">※ 묶음 서술형은 자동으로 포함된 절의 수만큼 점수가 배가됩니다.</p>
+        <p style="font-size:12px; color:#666;">※ 묶음 서술형(예: 7:2~3)은 자동으로 포함된 절의 수만큼 점수가 배가됩니다.</p>
       </div>
 
       <div class="settings-group">
         <label>빈칸 출제 방식</label>
         <select id="set-blank-mode" style="width:100%; padding:8px; margin-top:5px;">
           <option value="random">랜덤 뚫기 (시스템 자동)</option>
-          <option value="manual">관리자 수동 지정 (수동 지정한 문제가 1순위로 출제됩니다)</option>
+          <option value="manual">관리자 수동 지정 (수동 지정한 단어들이 1순위로 출제됩니다)</option>
         </select>
       </div>
 
@@ -308,7 +308,6 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  // 기본 30문제 세팅
   let examSettings = {
     isOpen: true, startCh: 7, endCh: 12,
     groupedVerses: "", 
@@ -378,96 +377,111 @@
     window.scrollTo(0, 0);
   }
 
-  function parseGroupedVerses(groupStr) {
-    let groups = [];
-    if(!groupStr) return groups;
-    const items = groupStr.split(',');
+  // ★ 서술형 후보 지정 파싱 로직 (계, 띄어쓰기, 물결표시 등 예외처리)
+  function parseEssayTargets(groupStr) {
+    let targets = [];
+    if(!groupStr) return targets;
+    // "계", 띄어쓰기 제거, "~"를 "-"로 변환
+    let cleaned = groupStr.replace(/계/g, '').replace(/\s+/g, '').replace(/~/g, '-');
+    let items = cleaned.split(',');
+    
     items.forEach(item => {
-      let parts = item.trim().split(':');
+      let parts = item.split(':');
       if(parts.length === 2) {
         let ch = parseInt(parts[0]);
         let range = parts[1].split('-');
         if(range.length === 2) {
-          groups.push({ ch: ch, startVs: parseInt(range[0]), endVs: parseInt(range[1]) });
+          targets.push({ isGroup: true, ch: ch, startVs: parseInt(range[0]), endVs: parseInt(range[1]) });
+        } else {
+          targets.push({ isGroup: false, ch: ch, vs: parseInt(range[0]) });
         }
       }
     });
-    return groups;
+    return targets;
   }
 
   function generateQuestions(difficulty) {
     const container = document.getElementById('question-container');
     container.innerHTML = '';
     
-    let pool = [];
-    let excludeKeys = new Set();
-    
-    let parsedGroups = parseGroupedVerses(examSettings.groupedVerses);
-    parsedGroups.forEach(g => {
-      let combinedText = "";
-      for(let v = g.startVs; v <= g.endVs; v++) {
-        if(bibleData[g.ch] && bibleData[g.ch][v-1]) {
-          combinedText += bibleData[g.ch][v-1] + " ";
-          excludeKeys.add(`${g.ch}:${v}`);
-        }
-      }
-      if(combinedText) {
-        pool.push({ isGroup: true, ch: g.ch, verseStr: `${g.startVs}~${g.endVs}`, text: combinedText.trim(), vsCount: (g.endVs - g.startVs + 1) });
-      }
-    });
-
-    for (let ch = examSettings.startCh; ch <= examSettings.endCh; ch++) {
-      if(bibleData[ch]) {
-        bibleData[ch].forEach((text, index) => {
-          if(!excludeKeys.has(`${ch}:${index+1}`)) {
-            pool.push({ isGroup: false, ch: ch, verseStr: `${index + 1}`, text: text, vsCount: 1 });
-          }
-        });
-      }
-    }
-
+    // 1. 할당량 세팅
     let numBlank = 0, numEssay = 0;
     if (difficulty === '초급') { numBlank = examSettings.lowBlankCnt; numEssay = examSettings.lowEssayCnt; }
     else if (difficulty === '중급') { numBlank = examSettings.midBlankCnt; numEssay = examSettings.midEssayCnt; }
     else if (difficulty === '고급') { numBlank = 0; numEssay = examSettings.highEssayCnt; }
 
-    // 빈칸 문제 배정: 수동 지정이 우선 출제되도록 풀 분리
-    let blankPool = [];
-    let essayPool = [];
-    
-    let groupPool = pool.filter(v => v.isGroup);
-    let singlePool = pool.filter(v => !v.isGroup);
+    let totalQuestions = numBlank + numEssay;
 
-    if (examSettings.blankMode === 'manual') {
-      let manualKeys = Object.keys(customBlanksDB);
-      let priorityPool = singlePool.filter(v => manualKeys.includes(`${v.ch}:${v.verseStr}`));
-      let normalPool = singlePool.filter(v => !manualKeys.includes(`${v.ch}:${v.verseStr}`));
-      
-      priorityPool.sort(() => Math.random() - 0.5);
-      normalPool.sort(() => Math.random() - 0.5);
-      
-      let allBlankCandidates = [...priorityPool, ...normalPool];
-      blankPool = allBlankCandidates.slice(0, numBlank);
-      
-      let remainingForEssay = allBlankCandidates.slice(numBlank);
-      groupPool.sort(() => Math.random() - 0.5);
-      remainingForEssay.sort(() => Math.random() - 0.5);
-      
-      let allEssayCandidates = [...groupPool, ...remainingForEssay];
-      essayPool = allEssayCandidates.slice(0, numEssay);
-    } else {
-      groupPool.sort(() => Math.random() - 0.5);
-      singlePool.sort(() => Math.random() - 0.5);
-      blankPool = singlePool.slice(0, numBlank);
-      
-      let remainingForEssay = singlePool.slice(numBlank);
-      let allEssayCandidates = [...groupPool, ...remainingForEssay];
-      essayPool = allEssayCandidates.slice(0, numEssay);
+    // 2. 관리자가 지정한 서술형 후보들 (이 중에서만 서술형 출제)
+    let essayTargets = parseEssayTargets(examSettings.groupedVerses);
+    essayTargets.sort(() => Math.random() - 0.5); // 랜덤 섞기
+    
+    // 할당량(numEssay)과 실제 지정된 후보 수 중 작은 값을 취함
+    let actualEssayCount = Math.min(numEssay, essayTargets.length);
+    let selectedEssays = essayTargets.slice(0, actualEssayCount);
+    
+    // 서술형으로 배정되지 못한 나머지 공간은 전부 빈칸 문제로 넘김
+    let actualBlankCount = totalQuestions - actualEssayCount;
+
+    let usedKeys = new Set();
+    let finalQuestions = [];
+
+    // 3. 선택된 서술형 객체 생성
+    selectedEssays.forEach(target => {
+      if(target.isGroup) {
+        let combinedText = "";
+        for(let v = target.startVs; v <= target.endVs; v++) {
+          if(bibleData[target.ch] && bibleData[target.ch][v-1]) {
+            combinedText += bibleData[target.ch][v-1] + " ";
+            usedKeys.add(`${target.ch}:${v}`);
+          }
+        }
+        if(combinedText) {
+          finalQuestions.push({ type: 'essay', ch: target.ch, verseStr: `${target.startVs}~${target.endVs}`, text: combinedText.trim(), vsCount: (target.endVs - target.startVs + 1) });
+        }
+      } else {
+        if(bibleData[target.ch] && bibleData[target.ch][target.vs-1]) {
+          finalQuestions.push({ type: 'essay', ch: target.ch, verseStr: `${target.vs}`, text: bibleData[target.ch][target.vs-1], vsCount: 1 });
+          usedKeys.add(`${target.ch}:${target.vs}`);
+        }
+      }
+    });
+
+    // 4. 나머지 모든 절들을 빈칸 문제 후보로 수집
+    let blankCandidates = [];
+    for (let ch = examSettings.startCh; ch <= examSettings.endCh; ch++) {
+      if(bibleData[ch]) {
+        bibleData[ch].forEach((text, index) => {
+          if(!usedKeys.has(`${ch}:${index+1}`)) {
+            blankCandidates.push({ ch: ch, vs: index+1, text: text });
+          }
+        });
+      }
     }
 
-    let finalQuestions = [...blankPool, ...essayPool];
+    // 5. 빈칸 문제 뽑기 (수동 모드 시 수동DB에 있는 단어 우선 추출)
+    if (examSettings.blankMode === 'manual') {
+      let manualKeys = Object.keys(customBlanksDB);
+      let priorityBlanks = blankCandidates.filter(c => manualKeys.includes(`${c.ch}:${c.vs}`));
+      let normalBlanks = blankCandidates.filter(c => !manualKeys.includes(`${c.ch}:${c.vs}`));
+      
+      priorityBlanks.sort(() => Math.random() - 0.5);
+      normalBlanks.sort(() => Math.random() - 0.5);
+      
+      let allBlanks = [...priorityBlanks, ...normalBlanks];
+      let selectedBlanks = allBlanks.slice(0, actualBlankCount);
+      selectedBlanks.forEach(b => {
+        finalQuestions.push({ type: 'blank', ch: b.ch, verseStr: `${b.vs}`, text: b.text, vsCount: 1 });
+      });
+    } else {
+      blankCandidates.sort(() => Math.random() - 0.5);
+      let selectedBlanks = blankCandidates.slice(0, actualBlankCount);
+      selectedBlanks.forEach(b => {
+        finalQuestions.push({ type: 'blank', ch: b.ch, verseStr: `${b.vs}`, text: b.text, vsCount: 1 });
+      });
+    }
 
-    // 응시자가 선택한 순서 모드 반영
+    // 6. 응시자가 선택한 순서 모드(랜덤/순차) 적용
     if (currentUser.orderMode === 'sequential') {
       finalQuestions.sort((a, b) => {
         if (a.ch !== b.ch) return a.ch - b.ch;
@@ -479,11 +493,9 @@
       finalQuestions.sort(() => Math.random() - 0.5);
     }
     
+    // 7. 화면에 렌더링
     let qIndex = 1;
-
     finalQuestions.forEach((verseInfo) => {
-      let isBlankType = blankPool.includes(verseInfo);
-
       const qBox = document.createElement('div');
       qBox.className = 'question-box';
       
@@ -492,7 +504,7 @@
       qTitle.innerText = `${qIndex}. 계시록 ${verseInfo.ch}장 ${verseInfo.verseStr}절`;
       qBox.appendChild(qTitle);
 
-      if (isBlankType) {
+      if (verseInfo.type === 'blank') {
         let htmlText = verseInfo.text;
         const exactKey = `${verseInfo.ch}:${verseInfo.verseStr}`;
         if (examSettings.blankMode === 'manual' && customBlanksDB[exactKey]) {
@@ -538,6 +550,7 @@
     });
   }
 
+  // 띄어쓰기 및 문장부호 무시 채점 로직
   function normalizeText(text) {
     return text.replace(/[\s\.\,\?\!\'\"]/g, '');
   }
