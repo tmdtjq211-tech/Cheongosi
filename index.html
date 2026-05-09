@@ -10,9 +10,11 @@
       background-color: #f4f7f6;
       display: flex;
       justify-content: center;
-      align-items: center;
+      align-items: flex-start;
+      padding: 40px 20px;
       min-height: 100vh;
       margin: 0;
+      box-sizing: border-box;
     }
     .container {
       background: white;
@@ -20,134 +22,76 @@
       border-radius: 10px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
       width: 100%;
-      max-width: 650px;
-      box-sizing: border-box;
+      max-width: 700px;
       position: relative;
     }
-    h2 {
-      text-align: center;
-      color: #333;
-    }
-    .input-group {
-      margin-bottom: 15px;
-    }
-    .input-group label {
-      display: block;
-      margin-bottom: 5px;
-      font-weight: bold;
-    }
+    h2 { text-align: center; color: #333; margin-bottom: 25px; }
+    .input-group { margin-bottom: 15px; }
+    .input-group label { display: block; margin-bottom: 5px; font-weight: bold; }
     .input-group input, .input-group select {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      box-sizing: border-box;
-      font-size: 15px;
+      width: 100%; padding: 10px; border: 1px solid #ccc;
+      border-radius: 5px; box-sizing: border-box; font-size: 15px;
     }
     button {
-      width: 100%;
-      padding: 12px;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      font-size: 16px;
-      cursor: pointer;
-      margin-top: 10px;
-      font-weight: bold;
+      width: 100%; padding: 12px; background-color: #4CAF50;
+      color: white; border: none; border-radius: 5px; font-size: 16px;
+      cursor: pointer; margin-top: 10px; font-weight: bold; transition: 0.2s;
     }
-    button:hover {
-      background-color: #45a049;
-    }
+    button:hover { background-color: #45a049; }
+    .btn-secondary { background-color: #757575; }
+    .btn-secondary:hover { background-color: #616161; }
+    
     .blank-input {
-      width: 80px;
-      border: none;
-      border-bottom: 2px solid #e91e63;
-      text-align: center;
-      outline: none;
-      font-size: 16px;
-      background-color: transparent;
-      color: #333;
-      font-weight: bold;
-      margin: 0 5px;
+      width: 100px; border: none; border-bottom: 2px solid #e91e63;
+      text-align: center; outline: none; font-size: 16px;
+      background-color: #fce4ec; color: #333; font-weight: bold;
+      margin: 0 5px; padding: 2px 5px; border-radius: 3px 3px 0 0;
     }
     textarea {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      resize: vertical;
-      box-sizing: border-box;
-      font-size: 15px;
-      min-height: 80px;
+      width: 100%; padding: 10px; border: 1px solid #ccc;
+      border-radius: 5px; resize: vertical; box-sizing: border-box;
+      font-size: 15px; min-height: 80px; font-family: 'Malgun Gothic', sans-serif;
     }
     .question-box {
-      background-color: #f9f9f9;
-      padding: 15px;
-      margin-bottom: 20px;
-      border-left: 4px solid #4CAF50;
-      border-radius: 5px;
-      line-height: 1.6;
+      background-color: #f9f9f9; padding: 15px; margin-bottom: 20px;
+      border-left: 4px solid #4CAF50; border-radius: 5px; line-height: 1.8;
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-    th, td {
-      border: 1px solid #ddd;
-      padding: 10px;
-      text-align: center;
-      font-size: 14px;
-    }
-    th {
-      background-color: #f2f2f2;
-    }
-    .hidden {
-      display: none !important;
-    }
-    .admin-tabs {
-      display: flex;
-      border-bottom: 2px solid #4CAF50;
-      margin-bottom: 20px;
-    }
+    .question-title { font-size: 16px; font-weight: bold; color: #2e7d32; margin-bottom: 10px; }
+    
+    /* 관리자 탭 스타일 */
+    .admin-tabs { display: flex; border-bottom: 2px solid #4CAF50; margin-bottom: 20px; }
     .admin-tab {
-      padding: 10px 20px;
-      cursor: pointer;
-      background: #f2f2f2;
-      border-radius: 5px 5px 0 0;
-      margin-right: 5px;
+      padding: 10px 20px; cursor: pointer; background: #f2f2f2;
+      border-radius: 5px 5px 0 0; margin-right: 5px;
     }
-    .admin-tab.active {
-      background: #4CAF50;
-      color: white;
-      font-weight: bold;
-    }
+    .admin-tab.active { background: #4CAF50; color: white; font-weight: bold; }
     .settings-group {
-      background: #fafafa;
-      padding: 15px;
-      border-radius: 5px;
-      margin-bottom: 15px;
-      border: 1px solid #eee;
+      background: #fafafa; padding: 15px; border-radius: 5px;
+      margin-bottom: 15px; border: 1px solid #eee;
     }
-    .closed-message {
-      text-align: center;
-      font-size: 20px;
-      color: #d32f2f;
-      font-weight: bold;
-      padding: 40px 0;
-    }
-    /* 관리자 진입용 숨겨진 버튼 */
+    
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ddd; padding: 10px; text-align: center; font-size: 14px; }
+    th { background-color: #f2f2f2; }
+    
+    .hidden { display: none !important; }
     .admin-trigger {
-      position: absolute;
-      bottom: -40px;
-      right: 0;
-      width: 30px;
-      height: 30px;
-      background: transparent;
-      border: none;
-      cursor: pointer;
+      position: absolute; bottom: -40px; right: 0;
+      width: 30px; height: 30px; background: transparent; border: none; cursor: pointer;
     }
+
+    /* 수동 빈칸 툴 스타일 */
+    #verse-preview {
+      padding: 15px; background: white; border: 1px solid #ccc;
+      border-radius: 5px; min-height: 100px; font-size: 16px; line-height: 1.8;
+      margin-bottom: 10px;
+    }
+    mark { background-color: #ffeb3b; font-weight: bold; padding: 0 4px; border-radius: 3px; }
+    
+    /* 결과창 정답 오답 스타일 */
+    .correct-field { background-color: #e8f5e9 !important; border-color: #4CAF50 !important; color: #2e7d32 !important; }
+    .wrong-field { background-color: #ffebee !important; border-color: #e91e63 !important; color: #c62828 !important; }
+    .correct-label { color: #e91e63; font-size: 13px; font-weight: bold; margin-left: 8px; background: #fce4ec; padding: 2px 6px; border-radius: 4px;}
   </style>
 </head>
 <body>
@@ -156,14 +100,12 @@
   
   <!-- 0. 로딩 화면 -->
   <div id="loading-screen">
-    <h2 style="text-align:center; padding: 40px 0;">데이터를 불러오는 중입니다...</h2>
+    <h2 style="text-align:center; padding: 40px 0; color: #666;">데이터를 불러오는 중입니다...</h2>
   </div>
 
   <!-- 0. 마감 메시지 화면 -->
   <div id="closed-screen" class="hidden">
-    <div class="closed-message">
-      지금은 시험응시 시간이 아닙니다.
-    </div>
+    <h2 style="color: #d32f2f; padding: 40px 0;">지금은 시험응시 시간이 아닙니다.</h2>
   </div>
 
   <!-- 1. 로그인 화면 -->
@@ -188,9 +130,9 @@
     <div class="input-group">
       <label>응시 난이도</label>
       <select id="difficulty">
-        <option value="초급">초급 (100% 빈칸)</option>
-        <option value="중급">중급 (빈칸 + 서술형 혼합)</option>
-        <option value="고급">고급 (100% 서술형 통암기)</option>
+        <option value="초급">초급 (빈칸 위주 + 서술형 조금)</option>
+        <option value="중급">중급 (빈칸 반 + 서술형 반)</option>
+        <option value="고급">고급 (100% 전체 서술형)</option>
       </select>
     </div>
     <button onclick="window.startExam()">응시하기</button>
@@ -200,92 +142,130 @@
   <div id="exam-screen" class="hidden">
     <h2 id="exam-title">계시록 시험</h2>
     <p id="user-info-display" style="text-align: right; color: #666; font-size: 14px; font-weight: bold;"></p>
-    <div style="text-align: right; font-size: 12px; color: #999; margin-bottom: 10px;">
+    <div style="text-align: right; font-size: 13px; color: #999; margin-bottom: 10px;">
       난이도: <span id="diff-display"></span> | 배점: 빈칸 <span id="pt-blank"></span>점, 서술 <span id="pt-essay"></span>점
     </div>
-    <hr style="border: 0; height: 1px; background: #eee; margin-bottom: 20px;">
+    <hr style="border: 0; height: 1px; background: #ddd; margin-bottom: 20px;">
     
     <form id="exam-form">
       <div id="question-container"></div>
-      <button type="button" onclick="window.submitExam()">답안 제출하기</button>
+      <button type="button" onclick="window.submitExam()" style="margin-top: 20px; font-size: 18px;">답안 제출하기</button>
     </form>
   </div>
 
-  <!-- 3. 관리자 화면 -->
+  <!-- 3. 결과 확인 화면 -->
+  <div id="result-screen" class="hidden">
+    <h2>채점 결과</h2>
+    <div style="background:#e8f5e9; padding:20px; border-radius:10px; text-align:center; margin-bottom:20px; border:2px solid #4CAF50;">
+      <h3 style="margin:0; color:#2e7d32;">최종 점수: <span id="final-score-display" style="font-size:30px;">0</span> 점</h3>
+      <p style="margin:10px 0 0 0; color:#555; font-size:14px;">본인 점수가 마음에 들지 않으면 재시험도 가능합니다!</p>
+    </div>
+    
+    <div id="result-container"></div>
+    
+    <div style="display: flex; gap: 10px; margin-top: 30px;">
+      <button onclick="window.retakeExam()">재시험 응시하기</button>
+      <button onclick="location.reload()" class="btn-secondary">나가기 (처음으로)</button>
+    </div>
+  </div>
+
+  <!-- 4. 관리자 화면 -->
   <div id="admin-screen" class="hidden">
     <h2>관리자 모드</h2>
     <div class="admin-tabs">
       <div class="admin-tab active" onclick="window.switchAdminTab('settings')">시험 설정</div>
+      <div class="admin-tab" onclick="window.switchAdminTab('blanks')">수동 빈칸 관리</div>
       <div class="admin-tab" onclick="window.switchAdminTab('status')">응시 현황</div>
     </div>
 
-    <!-- 설정 탭 -->
+    <!-- 4-1. 설정 탭 -->
     <div id="admin-settings">
       <div class="settings-group">
-        <label style="font-weight: bold;">시험 응시 상태</label>
-        <select id="set-isopen" style="width:100%; padding:8px; margin-top:5px;">
+        <label>시험 응시 상태</label>
+        <select id="set-isopen" style="width:100%; padding:8px;">
           <option value="true">오픈 (응시 가능)</option>
           <option value="false">마감 (응시 불가)</option>
         </select>
       </div>
 
       <div class="settings-group">
-        <label style="font-weight: bold;">출제 범위 (계시록)</label>
-        <div style="display: flex; gap: 10px; margin-top:5px; align-items: center;">
-          <input type="number" id="set-start" min="1" max="22" style="width: 60px; padding: 5px;"> 장 ~
-          <input type="number" id="set-end" min="1" max="22" style="width: 60px; padding: 5px;"> 장
+        <label>출제 범위 (계시록)</label>
+        <div style="display: flex; gap: 10px; align-items: center; margin-top:5px;">
+          <input type="number" id="set-start" min="1" max="22" style="width: 80px;"> 장 ~
+          <input type="number" id="set-end" min="1" max="22" style="width: 80px;"> 장
         </div>
       </div>
 
       <div class="settings-group">
-        <label style="font-weight: bold;">문제 수 설정</label>
-        <div style="margin-top:10px; font-size: 14px;">
-          초급/고급 총 문항: <input type="number" id="set-total" style="width: 60px; padding: 5px;"><br><br>
-          중급 빈칸 문항: <input type="number" id="set-mid-blank" style="width: 60px; padding: 5px;"> 개<br><br>
-          중급 서술 문항: <input type="number" id="set-mid-essay" style="width: 60px; padding: 5px;"> 개
+        <label>난이도별 문항 수 설정</label>
+        <table style="margin-top:10px;">
+          <tr><th>난이도</th><th>빈칸 문항</th><th>서술 문항</th></tr>
+          <tr><td>초급</td>
+              <td><input type="number" id="set-low-blank" style="width:50px;"> 개</td>
+              <td><input type="number" id="set-low-essay" style="width:50px;"> 개</td></tr>
+          <tr><td>중급</td>
+              <td><input type="number" id="set-mid-blank" style="width:50px;"> 개</td>
+              <td><input type="number" id="set-mid-essay" style="width:50px;"> 개</td></tr>
+          <tr><td>고급</td>
+              <td>0 개</td>
+              <td><input type="number" id="set-high-essay" style="width:50px;"> 개</td></tr>
+        </table>
+      </div>
+
+      <div class="settings-group">
+        <label>배점 설정</label>
+        <div style="margin-top:5px;">
+          빈칸 (1개당): <input type="number" id="set-pt-blank" style="width: 60px;"> 점<br><br>
+          서술형 (1문제당): <input type="number" id="set-pt-essay" style="width: 60px;"> 점
         </div>
       </div>
 
       <div class="settings-group">
-        <label style="font-weight: bold;">배점 설정</label>
-        <div style="margin-top:10px; font-size: 14px;">
-          빈칸 (1개당): <input type="number" id="set-pt-blank" style="width: 60px; padding: 5px;"> 점<br><br>
-          서술형 (1문제당): <input type="number" id="set-pt-essay" style="width: 60px; padding: 5px;"> 점
-        </div>
-      </div>
-
-      <div class="settings-group">
-        <label style="font-weight: bold;">빈칸 출제 방식</label>
+        <label>빈칸 출제 방식</label>
         <select id="set-blank-mode" style="width:100%; padding:8px; margin-top:5px;">
           <option value="random">랜덤 뚫기 (시스템 자동)</option>
-          <option value="manual">관리자 수동 지정 (DB 연동 시 사용)</option>
+          <option value="manual">관리자 수동 지정 (수동 빈칸 관리 탭 데이터 연동)</option>
         </select>
       </div>
 
       <button onclick="window.saveSettings()">설정 저장 및 적용</button>
-      <button style="background-color: #f44336;" onclick="location.reload()">나가기</button>
+      <button class="btn-secondary" onclick="location.reload()">나가기</button>
     </div>
 
-    <!-- 현황 탭 -->
+    <!-- 4-2. 수동 빈칸 탭 -->
+    <div id="admin-blanks" class="hidden">
+      <div class="settings-group">
+        <label>해당 장과 절을 선택하세요.</label>
+        <div style="display:flex; gap:10px; margin-top:5px; margin-bottom:15px;">
+          <select id="blank-ch" style="flex:1;" onchange="window.updateVerseSelect()"></select>
+          <select id="blank-vs" style="flex:1;" onchange="window.renderVersePreview()"></select>
+        </div>
+        
+        <label>본문 미리보기 (드래그하여 선택하세요)</label>
+        <div id="verse-preview"></div>
+        
+        <div style="display:flex; gap:10px;">
+          <button onclick="window.addManualBlank()">블록(드래그) 영역 빈칸 지정</button>
+          <button onclick="window.clearManualBlank()" style="background-color:#e91e63;">현재 절 빈칸 초기화</button>
+        </div>
+      </div>
+      <button onclick="window.saveManualBlanksDB()">DB에 빈칸 리스트 덮어쓰기 저장</button>
+      <p style="color:#d32f2f; font-size:12px; text-align:center;">※ 작업 완료 후 반드시 저장 버튼을 눌러야 반영됩니다.</p>
+    </div>
+
+    <!-- 4-3. 현황 탭 -->
     <div id="admin-status" class="hidden">
       <div style="overflow-x: auto;">
         <table>
-          <thead>
-            <tr>
-              <th>부서/과</th><th>구역</th><th>성함</th><th>난이도</th><th>점수</th>
-            </tr>
-          </thead>
+          <thead><tr><th>부서/과</th><th>구역</th><th>성함</th><th>난이도</th><th>점수</th></tr></thead>
           <tbody id="admin-table-body">
-            <tr>
-              <td colspan="5">데이터를 불러오는 중입니다...</td>
-            </tr>
+            <tr><td colspan="5">데이터를 불러오는 중입니다...</td></tr>
           </tbody>
         </table>
       </div>
     </div>
   </div>
 
-  <!-- 관리자 로그인 트리거 버튼 (화면 밖 투명 버튼) -->
   <button class="admin-trigger" onclick="window.checkAdmin()" title="관리자 로그인"></button>
 </div>
 
@@ -294,8 +274,8 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
   import { getFirestore, doc, getDoc, setDoc, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
   
-  // ★ 외부 파일에서 성경 데이터와 수동 빈칸 세팅을 불러옵니다.
-  import { bibleData, manualBlanksDB } from "./data/bibleData.js";
+  // 외부 파일에서 성경 데이터 불러오기
+  import { bibleData } from "./data/bibleData.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyD90YkT77h64XOfz2U96G9S7Csd0OhEVvk",
@@ -312,27 +292,33 @@
 
   let examSettings = {
     isOpen: true,
-    startCh: 7,
-    endCh: 12,
-    totalQuestions: 10,
-    midBlankCnt: 5,
-    midEssayCnt: 5,
-    ptBlank: 2,
-    ptEssay: 10,
+    startCh: 7, endCh: 12,
+    lowBlankCnt: 8, lowEssayCnt: 2,   // 초급
+    midBlankCnt: 5, midEssayCnt: 5,   // 중급
+    highEssayCnt: 10,                 // 고급
+    ptBlank: 2, ptEssay: 10,
     blankMode: 'random'
   };
 
+  let customBlanksDB = {}; // 관리자가 지정한 빈칸 리스트 보관
   let currentUser = {};
 
+  // 초기 로딩
   window.onload = async function() {
     try {
-      const docRef = doc(db, "settings", "examConfig");
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        examSettings = docSnap.data();
+      // 1. 시험 설정 불러오기
+      const confSnap = await getDoc(doc(db, "settings", "examConfig"));
+      if (confSnap.exists()) {
+        examSettings = { ...examSettings, ...confSnap.data() };
+      }
+      
+      // 2. 수동 빈칸 DB 불러오기
+      const blanksSnap = await getDoc(doc(db, "settings", "manualBlanks"));
+      if (blanksSnap.exists()) {
+        customBlanksDB = blanksSnap.data();
       }
     } catch (e) {
-      console.error("DB 로드 실패 (기본 설정으로 진행):", e);
+      console.error("DB 로드 실패:", e);
     }
 
     document.getElementById('loading-screen').classList.add('hidden');
@@ -344,6 +330,9 @@
     }
   };
 
+  // ==========================================
+  // 시험 관련 로직
+  // ==========================================
   window.startExam = function() {
     const region = document.getElementById('region').value.trim();
     const dept = document.getElementById('department').value.trim();
@@ -351,6 +340,7 @@
     const name = document.getElementById('name').value.trim();
     const difficulty = document.getElementById('difficulty').value;
 
+    // 관리자 모드 진입 조건 (모두 49)
     if (region === "49" && dept === "49" && district === "49" && name === "49") {
       window.enterAdminMode();
       return;
@@ -375,6 +365,17 @@
     document.getElementById('exam-screen').classList.remove('hidden');
   }
 
+  window.retakeExam = function() {
+    document.getElementById('result-screen').classList.add('hidden');
+    
+    // 이전에 생성했던 문제 화면 초기화 및 재출제
+    document.getElementById('question-container').innerHTML = '';
+    generateQuestions(currentUser.difficulty);
+    
+    document.getElementById('exam-screen').classList.remove('hidden');
+    window.scrollTo(0, 0);
+  }
+
   function generateQuestions(difficulty) {
     const container = document.getElementById('question-container');
     container.innerHTML = '';
@@ -388,46 +389,54 @@
       }
     }
 
+    // 배열 섞기
     pool.sort(() => Math.random() - 0.5);
 
     let numBlank = 0, numEssay = 0;
-
     if (difficulty === '초급') {
-      numBlank = examSettings.totalQuestions;
+      numBlank = examSettings.lowBlankCnt;
+      numEssay = examSettings.lowEssayCnt;
     } else if (difficulty === '중급') {
       numBlank = examSettings.midBlankCnt;
       numEssay = examSettings.midEssayCnt;
     } else if (difficulty === '고급') {
-      numEssay = examSettings.totalQuestions;
+      numBlank = 0;
+      numEssay = examSettings.highEssayCnt;
     }
 
-    let totalNeeded = difficulty === '중급' ? (examSettings.midBlankCnt + examSettings.midEssayCnt) : examSettings.totalQuestions;
+    let totalNeeded = numBlank + numEssay;
     let selectedVerses = pool.slice(0, totalNeeded);
     
     let qIndex = 1;
 
     selectedVerses.forEach((verseInfo, i) => {
-      let isBlankType = difficulty === '초급' || (difficulty === '중급' && i < examSettings.midBlankCnt);
+      // 지정된 numBlank 수량만큼 먼저 빈칸 문제 배정, 나머지는 서술형
+      let isBlankType = i < numBlank;
 
       const qBox = document.createElement('div');
       qBox.className = 'question-box';
       
-      const qTitle = document.createElement('h3');
+      const qTitle = document.createElement('div');
+      qTitle.className = 'question-title';
       qTitle.innerText = `${qIndex}. 계시록 ${verseInfo.ch}장 ${verseInfo.verse}절`;
       qBox.appendChild(qTitle);
 
       if (isBlankType) {
         let htmlText = verseInfo.text;
-        if (examSettings.blankMode === 'manual' && manualBlanksDB[`${verseInfo.ch}:${verseInfo.verse}`]) {
-          let wordsToBlank = manualBlanksDB[`${verseInfo.ch}:${verseInfo.verse}`];
+        
+        if (examSettings.blankMode === 'manual' && customBlanksDB[`${verseInfo.ch}:${verseInfo.verse}`]) {
+          let wordsToBlank = customBlanksDB[`${verseInfo.ch}:${verseInfo.verse}`];
+          // 긴 단어부터 치환하여 겹침 방지
+          wordsToBlank.sort((a,b) => b.length - a.length);
           wordsToBlank.forEach(word => {
-            htmlText = htmlText.replace(word, `<input type="text" class="blank-input answer-field" data-answer="${word}">`);
+            htmlText = htmlText.replaceAll(word, `<input type="text" class="blank-input answer-field" data-answer="${word}">`);
           });
         } else {
+          // 자동 랜덤
           let words = htmlText.split(' ');
-          let blankCount = Math.max(1, Math.floor(words.length * 0.2)); 
+          let blankCount = Math.max(1, Math.floor(words.length * 0.25)); 
           let blankIndices = [];
-          while (blankIndices.length < blankCount) {
+          while (blankIndices.length < blankCount && blankIndices.length < words.length) {
             let r = Math.floor(Math.random() * words.length);
             if (!blankIndices.includes(r) && words[r].length > 1) {
               blankIndices.push(r);
@@ -440,10 +449,13 @@
         }
         
         const qContent = document.createElement('p');
+        qContent.style.margin = "0";
         qContent.innerHTML = htmlText;
         qBox.appendChild(qContent);
+
       } else {
         const qDesc = document.createElement('p');
+        qDesc.style.margin = "0 0 10px 0";
         qDesc.innerText = "위 구절의 전체 말씀을 정확히 기록하시오.";
         const textArea = document.createElement('textarea');
         textArea.className = "answer-field";
@@ -462,53 +474,97 @@
   }
 
   window.submitExam = async function() {
-    if(confirm("답안을 제출하시겠습니까?")) {
-      let finalScore = 0;
-      const answerFields = document.querySelectorAll('.answer-field');
+    if(!confirm("답안을 제출하시겠습니까? 제출 후 채점 결과가 바로 표시됩니다.")) return;
 
-      answerFields.forEach(field => {
-        const userAnswer = normalizeText(field.value || "");
-        const correctAnswer = normalizeText(field.getAttribute('data-answer') || "");
-        if (userAnswer === correctAnswer && userAnswer !== "") {
-          finalScore += field.tagName === 'INPUT' ? examSettings.ptBlank : examSettings.ptEssay;
+    // 결과 화면 그리기 위해 문제 박스들 복사
+    const resContainer = document.getElementById('result-container');
+    resContainer.innerHTML = document.getElementById('question-container').innerHTML;
+    
+    let finalScore = 0;
+    const resFields = resContainer.querySelectorAll('.answer-field');
+    const originalFields = document.querySelectorAll('#question-container .answer-field');
+
+    resFields.forEach((field, idx) => {
+      // 복사된 컨테이너에는 입력값이 복사되지 않으므로 수동 매핑
+      field.value = originalFields[idx].value;
+      field.disabled = true; // 수정 불가 처리
+
+      const userAnswer = normalizeText(field.value || "");
+      const correctAnswer = normalizeText(field.getAttribute('data-answer') || "");
+      const isCorrect = (userAnswer === correctAnswer) && (userAnswer !== "");
+
+      if (isCorrect) {
+        field.classList.add('correct-field');
+        finalScore += (field.tagName === 'INPUT' ? examSettings.ptBlank : examSettings.ptEssay);
+      } else {
+        field.classList.add('wrong-field');
+        
+        // 오답 시 정답을 빨간 글씨로 옆(또는 아래)에 표시
+        const ansLabel = document.createElement('span');
+        ansLabel.className = 'correct-label';
+        ansLabel.innerText = `정답: ${field.getAttribute('data-answer')}`;
+        
+        if (field.tagName === 'INPUT') {
+          field.parentNode.insertBefore(ansLabel, field.nextSibling);
+        } else {
+          // 서술형인 경우 밑에 블록으로 표시
+          ansLabel.style.display = 'block';
+          ansLabel.style.marginTop = '10px';
+          field.parentNode.appendChild(ansLabel);
         }
-      });
-
-      try {
-        await addDoc(collection(db, "examResults"), {
-          region: currentUser.region,
-          department: currentUser.department,
-          district: currentUser.district,
-          name: currentUser.name,
-          difficulty: currentUser.difficulty,
-          score: finalScore,
-          timestamp: new Date()
-        });
-      } catch (e) {
-        console.error("저장 에러:", e);
       }
+    });
 
-      alert(`제출이 완료되었습니다!\n\n${currentUser.name}님의 점수: ${finalScore}점\n\n본인 점수가 마음에 들지 않으면 재시험도 가능합니다!`);
-      location.reload();
+    document.getElementById('final-score-display').innerText = finalScore;
+
+    // Firebase에 저장
+    try {
+      await addDoc(collection(db, "examResults"), {
+        region: currentUser.region,
+        department: currentUser.department,
+        district: currentUser.district,
+        name: currentUser.name,
+        difficulty: currentUser.difficulty,
+        score: finalScore,
+        timestamp: new Date()
+      });
+    } catch (e) {
+      console.error("결과 DB 저장 에러:", e);
     }
+
+    // 뷰 전환
+    document.getElementById('exam-screen').classList.add('hidden');
+    document.getElementById('result-screen').classList.remove('hidden');
+    window.scrollTo(0, 0);
   }
 
+  // ==========================================
+  // 관리자 모드 로직
+  // ==========================================
   window.enterAdminMode = function() {
     document.getElementById('loading-screen').classList.add('hidden');
     document.getElementById('closed-screen').classList.add('hidden');
     document.getElementById('login-screen').classList.add('hidden');
     document.getElementById('exam-screen').classList.add('hidden');
+    document.getElementById('result-screen').classList.add('hidden');
     document.getElementById('admin-screen').classList.remove('hidden');
     
+    // 설정값 바인딩
     document.getElementById('set-isopen').value = examSettings.isOpen.toString();
     document.getElementById('set-start').value = examSettings.startCh;
     document.getElementById('set-end').value = examSettings.endCh;
-    document.getElementById('set-total').value = examSettings.totalQuestions;
+    
+    document.getElementById('set-low-blank').value = examSettings.lowBlankCnt;
+    document.getElementById('set-low-essay').value = examSettings.lowEssayCnt;
     document.getElementById('set-mid-blank').value = examSettings.midBlankCnt;
     document.getElementById('set-mid-essay').value = examSettings.midEssayCnt;
+    document.getElementById('set-high-essay').value = examSettings.highEssayCnt;
+    
     document.getElementById('set-pt-blank').value = examSettings.ptBlank;
     document.getElementById('set-pt-essay').value = examSettings.ptEssay;
     document.getElementById('set-blank-mode').value = examSettings.blankMode;
+    
+    initManualBlanksUI();
   }
 
   window.checkAdmin = function() {
@@ -523,18 +579,106 @@
   window.switchAdminTab = async function(tab) {
     document.querySelectorAll('.admin-tab').forEach(el => el.classList.remove('active'));
     document.getElementById('admin-settings').classList.add('hidden');
+    document.getElementById('admin-blanks').classList.add('hidden');
     document.getElementById('admin-status').classList.add('hidden');
 
     if (tab === 'settings') {
       document.querySelectorAll('.admin-tab')[0].classList.add('active');
       document.getElementById('admin-settings').classList.remove('hidden');
-    } else {
+    } else if (tab === 'blanks') {
       document.querySelectorAll('.admin-tab')[1].classList.add('active');
+      document.getElementById('admin-blanks').classList.remove('hidden');
+    } else {
+      document.querySelectorAll('.admin-tab')[2].classList.add('active');
       document.getElementById('admin-status').classList.remove('hidden');
       await loadAdminStatus();
     }
   }
 
+  // --- 수동 빈칸 툴 로직 ---
+  function initManualBlanksUI() {
+    const chSelect = document.getElementById('blank-ch');
+    chSelect.innerHTML = '';
+    for (let ch = examSettings.startCh; ch <= examSettings.endCh; ch++) {
+      if(bibleData[ch]) chSelect.innerHTML += `<option value="${ch}">${ch}장</option>`;
+    }
+    window.updateVerseSelect();
+  }
+
+  window.updateVerseSelect = function() {
+    const ch = document.getElementById('blank-ch').value;
+    const vsSelect = document.getElementById('blank-vs');
+    vsSelect.innerHTML = '';
+    if (bibleData[ch]) {
+      bibleData[ch].forEach((v, idx) => {
+        vsSelect.innerHTML += `<option value="${idx+1}">${idx+1}절</option>`;
+      });
+    }
+    window.renderVersePreview();
+  }
+
+  window.renderVersePreview = function() {
+    const ch = document.getElementById('blank-ch').value;
+    const vs = document.getElementById('blank-vs').value;
+    const key = `${ch}:${vs}`;
+    
+    if(!bibleData[ch] || !bibleData[ch][vs-1]) return;
+    
+    let htmlText = bibleData[ch][vs-1];
+    
+    // DB에 있는 단어를 노란색 mark로 하이라이트
+    if(customBlanksDB[key]) {
+      let words = [...customBlanksDB[key]];
+      words.sort((a,b) => b.length - a.length); // 긴 단어부터 치환
+      words.forEach(w => {
+        htmlText = htmlText.replaceAll(w, `<mark>${w}</mark>`);
+      });
+    }
+    
+    document.getElementById('verse-preview').innerHTML = htmlText;
+  }
+
+  window.addManualBlank = function() {
+    const sel = window.getSelection().toString().trim();
+    if (!sel) {
+      alert("먼저 위의 미리보기 상자에서 빈칸으로 뚫을 단어를 마우스로 드래그하여 블록 지정하세요.");
+      return;
+    }
+
+    const ch = document.getElementById('blank-ch').value;
+    const vs = document.getElementById('blank-vs').value;
+    const key = `${ch}:${vs}`;
+
+    if(!customBlanksDB[key]) customBlanksDB[key] = [];
+    if(!customBlanksDB[key].includes(sel)) {
+      customBlanksDB[key].push(sel);
+      window.getSelection().removeAllRanges(); // 드래그 해제
+      window.renderVersePreview();
+    }
+  }
+
+  window.clearManualBlank = function() {
+    const ch = document.getElementById('blank-ch').value;
+    const vs = document.getElementById('blank-vs').value;
+    const key = `${ch}:${vs}`;
+    
+    if(confirm(`${ch}장 ${vs}절에 지정된 빈칸을 모두 지우시겠습니까?`)) {
+      delete customBlanksDB[key];
+      window.renderVersePreview();
+    }
+  }
+
+  window.saveManualBlanksDB = async function() {
+    try {
+      await setDoc(doc(db, "settings", "manualBlanks"), customBlanksDB);
+      alert("수동 빈칸 데이터가 안전하게 DB에 저장되었습니다!");
+    } catch (e) {
+      console.error("수동 빈칸 저장 실패:", e);
+      alert("저장 실패. 관리자에게 문의하세요.");
+    }
+  }
+
+  // --- 응시 현황 통계 ---
   async function loadAdminStatus() {
     const tbody = document.getElementById('admin-table-body');
     tbody.innerHTML = '<tr><td colspan="5">데이터를 불러오는 중입니다...</td></tr>';
@@ -571,7 +715,7 @@
       }
 
       userList.forEach(u => {
-        u.scores.sort((a, b) => b - a);
+        u.scores.sort((a, b) => b - a); // 내림차순 정렬
         const scoreString = u.scores.join(', ');
         const displayName = u.count > 1 ? `(재) ${u.name}` : u.name;
 
@@ -595,20 +739,24 @@
     examSettings.isOpen = document.getElementById('set-isopen').value === 'true';
     examSettings.startCh = parseInt(document.getElementById('set-start').value);
     examSettings.endCh = parseInt(document.getElementById('set-end').value);
-    examSettings.totalQuestions = parseInt(document.getElementById('set-total').value);
+    
+    examSettings.lowBlankCnt = parseInt(document.getElementById('set-low-blank').value);
+    examSettings.lowEssayCnt = parseInt(document.getElementById('set-low-essay').value);
     examSettings.midBlankCnt = parseInt(document.getElementById('set-mid-blank').value);
     examSettings.midEssayCnt = parseInt(document.getElementById('set-mid-essay').value);
+    examSettings.highEssayCnt = parseInt(document.getElementById('set-high-essay').value);
+    
     examSettings.ptBlank = parseInt(document.getElementById('set-pt-blank').value);
     examSettings.ptEssay = parseInt(document.getElementById('set-pt-essay').value);
     examSettings.blankMode = document.getElementById('set-blank-mode').value;
 
     try {
       await setDoc(doc(db, "settings", "examConfig"), examSettings);
-      alert("설정이 저장되었습니다.\n적용을 위해 메인화면으로 돌아갑니다.");
+      alert("설정이 저장되었습니다.\n적용을 위해 화면을 새로고침합니다.");
       location.reload();
     } catch (e) {
       console.error("설정 저장 실패:", e);
-      alert("저장에 실패했습니다. 관리자에게 문의하세요.");
+      alert("저장에 실패했습니다.");
     }
   }
 </script>
