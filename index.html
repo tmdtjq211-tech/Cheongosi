@@ -70,7 +70,7 @@
       margin-bottom: 15px; border: 1px solid #eee;
     }
     
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
     th, td { border: 1px solid #ddd; padding: 10px; text-align: center; font-size: 14px; }
     th { background-color: #f2f2f2; }
     
@@ -91,7 +91,7 @@
     .wrong-field { background-color: #ffebee !important; border-color: #e91e63 !important; color: #c62828 !important; }
     .correct-label { color: #e91e63; font-size: 13px; font-weight: bold; margin-left: 8px; background: #fce4ec; padding: 2px 6px; border-radius: 4px; display:inline-block;}
 
-    /* 모달 스타일 (시험지 보기) */
+    /* 모달 스타일 */
     .modal-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 1000;
@@ -140,6 +140,13 @@
         <option value="고급">고급 (100% 전체 서술형)</option>
       </select>
     </div>
+    <div class="input-group">
+      <label>문제 출제 순서</label>
+      <select id="order-mode">
+        <option value="random">문제 순서 섞기 (랜덤 배열)</option>
+        <option value="sequential">말씀 순서대로 (장/절 순)</option>
+      </select>
+    </div>
     <button onclick="window.startExam()">응시하기</button>
   </div>
 
@@ -147,7 +154,7 @@
     <h2 id="exam-title">계시록 시험</h2>
     <p id="user-info-display" style="text-align: right; color: #666; font-size: 14px; font-weight: bold;"></p>
     <div style="text-align: right; font-size: 13px; color: #999; margin-bottom: 10px;">
-      난이도: <span id="diff-display"></span> | 배점: 빈칸 <span id="pt-blank"></span>점, 서술 <span id="pt-essay"></span>점
+      난이도: <span id="diff-display"></span> | <span id="order-display"></span> | 배점: 빈칸 <span id="pt-blank"></span>점, 서술 <span id="pt-essay"></span>점
     </div>
     <hr style="border: 0; height: 1px; background: #ddd; margin-bottom: 20px;">
     
@@ -180,6 +187,7 @@
       <div class="admin-tab" onclick="window.switchAdminTab('status')">응시 현황</div>
     </div>
 
+    <!-- 설정 탭 -->
     <div id="admin-settings">
       <div class="settings-group">
         <label>시험 응시 상태</label>
@@ -204,7 +212,7 @@
       </div>
 
       <div class="settings-group">
-        <label>난이도별 문항 수 설정 (묶음 문제 포함 개수)</label>
+        <label>난이도별 문항 수 설정 (기본 30문제 세팅)</label>
         <table style="margin-top:10px;">
           <tr><th>난이도</th><th>빈칸 문항</th><th>서술 문항</th></tr>
           <tr><td>초급</td><td><input type="number" id="set-low-blank" style="width:50px;"> 개</td><td><input type="number" id="set-low-essay" style="width:50px;"> 개</td></tr>
@@ -226,7 +234,7 @@
         <label>빈칸 출제 방식</label>
         <select id="set-blank-mode" style="width:100%; padding:8px; margin-top:5px;">
           <option value="random">랜덤 뚫기 (시스템 자동)</option>
-          <option value="manual">관리자 수동 지정 (수동 빈칸 관리 탭 데이터 연동)</option>
+          <option value="manual">관리자 수동 지정 (수동 지정한 문제가 1순위로 출제됩니다)</option>
         </select>
       </div>
 
@@ -234,6 +242,7 @@
       <button class="btn-secondary" onclick="location.reload()">나가기</button>
     </div>
 
+    <!-- 수동 빈칸 탭 -->
     <div id="admin-blanks" class="hidden">
       <div class="settings-group">
         <label>해당 장과 절을 선택하세요.</label>
@@ -249,12 +258,18 @@
         </div>
       </div>
       <button onclick="window.saveManualBlanksDB()">DB에 빈칸 리스트 덮어쓰기 저장</button>
+      <p style="color:#d32f2f; font-size:12px; text-align:center;">※ 작업 완료 후 반드시 저장 버튼을 눌러야 반영됩니다.</p>
     </div>
 
+    <!-- 현황 탭 -->
     <div id="admin-status" class="hidden">
+      <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+        <h3 style="margin:0;">제출 목록</h3>
+        <div id="admin-unique-count" style="font-weight:bold; color:#e91e63; font-size:16px;">총 실제 응시자: 0명 (중복 제외)</div>
+      </div>
       <div style="overflow-x: auto;">
         <table>
-          <thead><tr><th>부서</th><th>지역/구역</th><th>성함</th><th>난이도</th><th>점수</th><th>재시험여부</th><th>시험지</th></tr></thead>
+          <thead><tr><th>부서</th><th>지역/구역</th><th>성함</th><th>난이도(순서)</th><th>점수</th><th>재시험여부</th><th>시험지</th></tr></thead>
           <tbody id="admin-table-body">
             <tr><td colspan="7">데이터를 불러오는 중입니다...</td></tr>
           </tbody>
@@ -271,11 +286,7 @@
   <div class="modal-content">
     <span class="modal-close" onclick="window.closeModal()">&times;</span>
     <h2 id="modal-title">시험지 보기</h2>
-    
-    <!-- 재시험 횟수가 여러번일 경우 리스트업 -->
     <div id="modal-attempts-list" style="margin-bottom:20px;"></div>
-    
-    <!-- 실제 시험지 내용이 뿌려지는 곳 -->
     <div id="modal-paper-content" style="background:#f4f7f6; padding:15px; border-radius:8px;"></div>
   </div>
 </div>
@@ -297,19 +308,20 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
+  // 기본 30문제 세팅
   let examSettings = {
     isOpen: true, startCh: 7, endCh: 12,
-    groupedVerses: "", // 예: "7:1-4, 12:1-3"
-    lowBlankCnt: 8, lowEssayCnt: 2,
-    midBlankCnt: 5, midEssayCnt: 5,
-    highEssayCnt: 10,
+    groupedVerses: "", 
+    lowBlankCnt: 24, lowEssayCnt: 6,
+    midBlankCnt: 15, midEssayCnt: 15,
+    highEssayCnt: 30,
     ptBlank: 2, ptEssay: 10,
     blankMode: 'random'
   };
 
   let customBlanksDB = {};
   let currentUser = {};
-  let allResultsData = []; // 관리자용 전체 제출 데이터 보관
+  let allResultsData = []; 
 
   window.onload = async function() {
     try {
@@ -336,6 +348,7 @@
     const district = document.getElementById('district').value.trim();
     const name = document.getElementById('name').value.trim();
     const difficulty = document.getElementById('difficulty').value;
+    const orderMode = document.getElementById('order-mode').value;
 
     if (region === "49" && dept === "49" && district === "49" && name === "49") {
       window.enterAdminMode();
@@ -344,10 +357,11 @@
 
     if (!region || !dept || !district || !name) { alert("모든 정보를 입력해주세요."); return; }
 
-    currentUser = { region, department: dept, district, name, difficulty };
+    currentUser = { region, department: dept, district, name, difficulty, orderMode };
 
     document.getElementById('user-info-display').innerText = `${region} / ${dept} / ${district} / ${name}`;
     document.getElementById('diff-display').innerText = difficulty;
+    document.getElementById('order-display').innerText = (orderMode === 'random' ? '문제 섞기(랜덤)' : '말씀 순서대로');
     document.getElementById('pt-blank').innerText = examSettings.ptBlank;
     document.getElementById('pt-essay').innerText = examSettings.ptEssay;
 
@@ -364,7 +378,6 @@
     window.scrollTo(0, 0);
   }
 
-  // --- 범위 묶기 텍스트(7:1-4) 파싱 함수 ---
   function parseGroupedVerses(groupStr) {
     let groups = [];
     if(!groupStr) return groups;
@@ -389,7 +402,6 @@
     let pool = [];
     let excludeKeys = new Set();
     
-    // 1. 묶음 범위(Grouped) 먼저 처리 (서술형으로만 사용됨)
     let parsedGroups = parseGroupedVerses(examSettings.groupedVerses);
     parsedGroups.forEach(g => {
       let combinedText = "";
@@ -400,16 +412,10 @@
         }
       }
       if(combinedText) {
-        pool.push({
-          isGroup: true,
-          ch: g.ch, verseStr: `${g.startVs}~${g.endVs}`,
-          text: combinedText.trim(),
-          vsCount: (g.endVs - g.startVs + 1) // 문제 배점을 위해 보관
-        });
+        pool.push({ isGroup: true, ch: g.ch, verseStr: `${g.startVs}~${g.endVs}`, text: combinedText.trim(), vsCount: (g.endVs - g.startVs + 1) });
       }
     });
 
-    // 2. 나머지 단일 절 처리
     for (let ch = examSettings.startCh; ch <= examSettings.endCh; ch++) {
       if(bibleData[ch]) {
         bibleData[ch].forEach((text, index) => {
@@ -420,31 +426,63 @@
       }
     }
 
-    // 배열 섞기
-    pool.sort(() => Math.random() - 0.5);
-
     let numBlank = 0, numEssay = 0;
     if (difficulty === '초급') { numBlank = examSettings.lowBlankCnt; numEssay = examSettings.lowEssayCnt; }
     else if (difficulty === '중급') { numBlank = examSettings.midBlankCnt; numEssay = examSettings.midEssayCnt; }
     else if (difficulty === '고급') { numBlank = 0; numEssay = examSettings.highEssayCnt; }
 
-    let totalNeeded = numBlank + numEssay;
+    // 빈칸 문제 배정: 수동 지정이 우선 출제되도록 풀 분리
+    let blankPool = [];
+    let essayPool = [];
     
-    // 문제 배정 (Group은 항상 서술형으로 배정되도록 정렬)
-    pool.sort((a,b) => (a.isGroup === b.isGroup) ? 0 : a.isGroup ? -1 : 1);
-    
-    // 서술형에 묶음 문제 우선 배치, 그 다음 빈칸
-    let essayPool = pool.slice(0, numEssay);
-    let blankPool = pool.slice(numEssay, numEssay + numBlank);
-    
-    // 합쳐서 다시 섞기
-    let finalQuestions = [...blankPool, ...essayPool].sort(() => Math.random() - 0.5);
+    let groupPool = pool.filter(v => v.isGroup);
+    let singlePool = pool.filter(v => !v.isGroup);
+
+    if (examSettings.blankMode === 'manual') {
+      let manualKeys = Object.keys(customBlanksDB);
+      let priorityPool = singlePool.filter(v => manualKeys.includes(`${v.ch}:${v.verseStr}`));
+      let normalPool = singlePool.filter(v => !manualKeys.includes(`${v.ch}:${v.verseStr}`));
+      
+      priorityPool.sort(() => Math.random() - 0.5);
+      normalPool.sort(() => Math.random() - 0.5);
+      
+      let allBlankCandidates = [...priorityPool, ...normalPool];
+      blankPool = allBlankCandidates.slice(0, numBlank);
+      
+      let remainingForEssay = allBlankCandidates.slice(numBlank);
+      groupPool.sort(() => Math.random() - 0.5);
+      remainingForEssay.sort(() => Math.random() - 0.5);
+      
+      let allEssayCandidates = [...groupPool, ...remainingForEssay];
+      essayPool = allEssayCandidates.slice(0, numEssay);
+    } else {
+      groupPool.sort(() => Math.random() - 0.5);
+      singlePool.sort(() => Math.random() - 0.5);
+      blankPool = singlePool.slice(0, numBlank);
+      
+      let remainingForEssay = singlePool.slice(numBlank);
+      let allEssayCandidates = [...groupPool, ...remainingForEssay];
+      essayPool = allEssayCandidates.slice(0, numEssay);
+    }
+
+    let finalQuestions = [...blankPool, ...essayPool];
+
+    // 응시자가 선택한 순서 모드 반영
+    if (currentUser.orderMode === 'sequential') {
+      finalQuestions.sort((a, b) => {
+        if (a.ch !== b.ch) return a.ch - b.ch;
+        let aVs = parseInt(a.verseStr.toString().split('~')[0]);
+        let bVs = parseInt(b.verseStr.toString().split('~')[0]);
+        return aVs - bVs;
+      });
+    } else {
+      finalQuestions.sort(() => Math.random() - 0.5);
+    }
     
     let qIndex = 1;
 
     finalQuestions.forEach((verseInfo) => {
-      // blankPool에 있던 데이터면 빈칸형
-      let isBlankType = blankPool.includes(verseInfo) && !verseInfo.isGroup;
+      let isBlankType = blankPool.includes(verseInfo);
 
       const qBox = document.createElement('div');
       qBox.className = 'question-box';
@@ -500,7 +538,6 @@
     });
   }
 
-  // 띄어쓰기 및 특수기호 무시하는 함수
   function normalizeText(text) {
     return text.replace(/[\s\.\,\?\!\'\"]/g, '');
   }
@@ -515,7 +552,6 @@
     const resFields = resContainer.querySelectorAll('.answer-field');
     const originalFields = document.querySelectorAll('#question-container .answer-field');
     
-    // DB 저장용 시험지 데이터 배열
     let paperDataToSave = [];
 
     resFields.forEach((field, idx) => {
@@ -535,7 +571,7 @@
         if (qType === 'blank') earnedPoints = examSettings.ptBlank;
         else {
           let vsCount = parseInt(field.getAttribute('data-vscount')) || 1;
-          earnedPoints = examSettings.ptEssay * vsCount; // 묶음 문제는 배점 증가
+          earnedPoints = examSettings.ptEssay * vsCount;
         }
         finalScore += earnedPoints;
       } else {
@@ -550,14 +586,8 @@
         }
       }
       
-      // 저장용 객체 생성
       paperDataToSave.push({
-        title: qTitle,
-        userAnswer: uAns,
-        correctAnswer: cAns,
-        isCorrect: isCorrect,
-        type: qType,
-        points: earnedPoints
+        title: qTitle, userAnswer: uAns, correctAnswer: cAns, isCorrect: isCorrect, type: qType, points: earnedPoints
       });
     });
 
@@ -565,14 +595,10 @@
 
     try {
       await addDoc(collection(db, "examResults"), {
-        region: currentUser.region,
-        department: currentUser.department,
-        district: currentUser.district,
-        name: currentUser.name,
-        difficulty: currentUser.difficulty,
-        score: finalScore,
-        paperData: paperDataToSave, // 시험지 내용 통째로 저장
-        timestamp: new Date()
+        region: currentUser.region, department: currentUser.department,
+        district: currentUser.district, name: currentUser.name,
+        difficulty: currentUser.difficulty, orderMode: currentUser.orderMode,
+        score: finalScore, paperData: paperDataToSave, timestamp: new Date()
       });
     } catch (e) {
       console.error("결과 DB 저장 에러:", e);
@@ -637,7 +663,6 @@
     }
   }
 
-  // 수동 빈칸 관련
   function initManualBlanksUI() {
     const chSelect = document.getElementById('blank-ch');
     chSelect.innerHTML = '';
@@ -692,7 +717,6 @@
     alert("저장되었습니다.");
   }
 
-  // --- 응시 현황 및 시험지 보기 ---
   async function loadAdminStatus() {
     const tbody = document.getElementById('admin-table-body');
     tbody.innerHTML = '<tr><td colspan="7">데이터를 불러오는 중입니다...</td></tr>';
@@ -705,7 +729,7 @@
 
       querySnapshot.forEach((doc) => {
         const data = doc.data();
-        data.id = doc.id; // 문서 ID 추가
+        data.id = doc.id;
         allResultsData.push(data);
         
         const key = `${data.region}_${data.department}_${data.district}_${data.name}`;
@@ -725,27 +749,29 @@
         return 0;
       });
 
+      // 실제 응시자수 업데이트
+      document.getElementById('admin-unique-count').innerText = `총 실제 응시자: ${userList.length}명 (중복 제외)`;
+
       tbody.innerHTML = '';
       if(userList.length === 0) { tbody.innerHTML = '<tr><td colspan="7">응시 기록이 없습니다.</td></tr>'; return; }
 
       userList.forEach(u => {
-        // 점수 추출 및 정렬 (보기용)
         let scores = u.attempts.map(att => att.score).sort((a,b) => b-a);
         const scoreString = scores.join(', ');
         
-        // 재시험 여부 및 횟수 표시
         const isRetake = u.attempts.length > 1;
         const retakeStr = isRetake ? `<span style="color:#e91e63; font-weight:bold;">O (${u.attempts.length}회)</span>` : `<span style="color:#999;">X</span>`;
-        
-        // User Key를 생성하여 버튼에 할당
         const userKey = `${u.info.region}_${u.info.department}_${u.info.district}_${u.info.name}`;
+        
+        // 순서/랜덤 여부 표시
+        const orderStr = u.attempts[0].orderMode === 'sequential' ? '순서' : '랜덤';
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${u.info.department}</td>
           <td>${u.info.region} / ${u.info.district}</td>
           <td style="font-weight:bold;">${isRetake ? '(재) ' : ''}${u.info.name}</td>
-          <td>${u.info.difficulty}</td>
+          <td>${u.info.difficulty} <br><span style="font-size:12px; color:#666;">(${orderStr})</span></td>
           <td style="color:#2e7d32; font-weight:bold;">${scoreString}</td>
           <td>${retakeStr}</td>
           <td><button class="btn-small" onclick="window.openPaperModal('${userKey}')">시험지 보기</button></td>
@@ -759,11 +785,8 @@
   }
 
   window.openPaperModal = function(userKey) {
-    const userAttempts = allResultsData.filter(d => 
-      `${d.region}_${d.department}_${d.district}_${d.name}` === userKey
-    );
+    const userAttempts = allResultsData.filter(d => `${d.region}_${d.department}_${d.district}_${d.name}` === userKey);
     
-    // 시도 횟수 역순(최신순)으로 정렬되어 있음 (DB 로드 시 desc 정렬함)
     const modalTitle = document.getElementById('modal-title');
     modalTitle.innerText = `${userAttempts[0].name}님의 제출 답안`;
 
@@ -773,9 +796,7 @@
     const contentDiv = document.getElementById('modal-paper-content');
     contentDiv.innerHTML = '<p style="color:#666; text-align:center;">위에서 회차를 선택하면 시험지가 표시됩니다.</p>';
 
-    // 회차 버튼 생성
     userAttempts.forEach((att, idx) => {
-      // 최신순이므로 인덱스 계산 (총 횟수 - idx)
       const attemptNum = userAttempts.length - idx; 
       const btn = document.createElement('button');
       btn.className = 'btn-small btn-secondary';
@@ -786,8 +807,6 @@
     });
 
     document.getElementById('paper-modal').classList.remove('hidden');
-    
-    // 기본으로 가장 최근(첫번째 요소) 시험지 표시
     window.renderPaperData(userAttempts[0]);
   }
 
@@ -797,39 +816,33 @@
 
   window.renderPaperData = function(attemptData) {
     const contentDiv = document.getElementById('modal-paper-content');
-    contentDiv.innerHTML = `<h3 style="border-bottom:2px solid #ccc; padding-bottom:5px;">점수: ${attemptData.score}점 (${new Date(attemptData.timestamp.seconds * 1000).toLocaleString()})</h3>`;
+    const orderText = attemptData.orderMode === 'sequential' ? '순서대로' : '섞기(랜덤)';
+    contentDiv.innerHTML = `<h3 style="border-bottom:2px solid #ccc; padding-bottom:5px;">점수: ${attemptData.score}점 <span style="font-size:14px; color:#666; font-weight:normal;">[${orderText}]</span> <br><span style="font-size:13px; color:#999;">${new Date(attemptData.timestamp.seconds * 1000).toLocaleString()}</span></h3>`;
 
     if(!attemptData.paperData || attemptData.paperData.length === 0) {
-      contentDiv.innerHTML += "<p>이 시험지의 상세 데이터가 저장되지 않았습니다.</p>";
+      contentDiv.innerHTML += "<p>상세 데이터가 없습니다.</p>";
       return;
     }
 
-    // 빈칸 문제들을 하나로 묶어 표시하기 위한 로직
     let currentTitle = "";
     let blankParagraph = null;
 
     attemptData.paperData.forEach((item, idx) => {
       const qBox = document.createElement('div');
-      qBox.style.marginBottom = '15px';
-      qBox.style.padding = '10px';
-      qBox.style.background = 'white';
-      qBox.style.borderLeft = '3px solid #ccc';
+      qBox.style.marginBottom = '15px'; qBox.style.padding = '10px'; qBox.style.background = 'white'; qBox.style.borderLeft = '3px solid #ccc';
       
       const titleSpan = `<div style="font-weight:bold; color:#2e7d32; margin-bottom:5px;">${item.title}</div>`;
 
       if(item.type === 'essay') {
         let ansHtml = `<div style="color:#555; font-size:14px; margin-bottom:5px;">[응시자 작성 내용]</div>`;
         ansHtml += `<div style="padding:8px; border-radius:4px; border:1px solid ${item.isCorrect ? '#4CAF50' : '#e91e63'}; background:${item.isCorrect ? '#e8f5e9' : '#ffebee'};">${item.userAnswer || '(빈칸)'}</div>`;
-        if(!item.isCorrect) {
-          ansHtml += `<div style="margin-top:5px; font-size:13px; color:#e91e63; font-weight:bold;">정답: ${item.correctAnswer}</div>`;
-        }
+        if(!item.isCorrect) ansHtml += `<div style="margin-top:5px; font-size:13px; color:#e91e63; font-weight:bold;">정답: ${item.correctAnswer}</div>`;
         qBox.innerHTML = titleSpan + ansHtml;
         contentDiv.appendChild(qBox);
       } else if (item.type === 'blank') {
         let ansHtml = `단어: <span style="display:inline-block; padding:2px 6px; border-radius:4px; border:1px solid ${item.isCorrect ? '#4CAF50' : '#e91e63'}; background:${item.isCorrect ? '#e8f5e9' : '#ffebee'}; font-weight:bold; margin-right:10px;">${item.userAnswer || '(미입력)'}</span>`;
         if(!item.isCorrect) ansHtml += `<span style="font-size:13px; color:#e91e63; font-weight:bold;">(정답: ${item.correctAnswer})</span>`;
         
-        // 같은 성경 구절 내의 빈칸들은 하나로 묶어서 표시
         if(item.title !== currentTitle) {
           currentTitle = item.title;
           blankParagraph = document.createElement('div');
@@ -838,7 +851,6 @@
           qBox.innerHTML += `<div>${ansHtml}</div>`;
           contentDiv.appendChild(qBox);
         } else {
-          // 마지막에 추가된 요소에 덧붙이기
           contentDiv.lastChild.innerHTML += `<div style="margin-top:5px;">${ansHtml}</div>`;
         }
       }
@@ -865,9 +877,7 @@
       await setDoc(doc(db, "settings", "examConfig"), examSettings);
       alert("설정이 저장되었습니다.\n화면을 새로고침합니다.");
       location.reload();
-    } catch (e) {
-      alert("저장에 실패했습니다.");
-    }
+    } catch (e) { alert("저장에 실패했습니다."); }
   }
 </script>
 </body>
