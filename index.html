@@ -22,7 +22,7 @@
       border-radius: 10px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
       width: 100%;
-      max-width: 750px; /* 테이블 크기를 고려해 약간 넓힘 */
+      max-width: 750px;
       position: relative;
     }
     h2 { text-align: center; color: #333; margin-bottom: 25px; }
@@ -42,12 +42,19 @@
     .btn-secondary:hover { background-color: #616161; }
     .btn-small { padding: 5px 10px; font-size: 13px; width: auto; margin-top: 0; }
     
+    /* 빈칸 입력창 스타일 수정 (흰색 배경, 차분한 회색 밑줄) */
     .blank-input {
-      width: 100px; border: none; border-bottom: 2px solid #e91e63;
+      width: 100px; border: none; border-bottom: 2px solid #999;
       text-align: center; outline: none; font-size: 16px;
-      background-color: #fce4ec; color: #333; font-weight: bold;
+      background-color: white; color: #333; font-weight: bold;
       margin: 0 5px; padding: 2px 5px; border-radius: 3px 3px 0 0;
+      transition: border-color 0.2s;
     }
+    /* 클릭 시(포커스) 초록색 밑줄 강조 */
+    .blank-input:focus {
+      border-bottom: 2px solid #4CAF50;
+    }
+
     textarea {
       width: 100%; padding: 10px; border: 1px solid #ccc;
       border-radius: 5px; resize: vertical; box-sizing: border-box;
@@ -266,7 +273,6 @@
       <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom: 10px;">
         <h3 style="margin:0;">제출 목록</h3>
         <div style="display:flex; align-items:center; gap:15px;">
-          <!-- 정렬 드롭다운 추가 -->
           <select id="sort-mode" onchange="window.applySorting()" style="padding: 5px; border-radius: 4px; border:1px solid #ccc; font-weight:bold;">
             <option value="dateDesc">최신 날짜순</option>
             <option value="scoreDesc">최고 점수순</option>
@@ -329,8 +335,6 @@
   let customBlanksDB = {};
   let currentUser = {};
   let allResultsData = []; 
-  
-  // 브라우저 캐싱용 유저 그룹 리스트 (정렬 기능에 사용)
   window.userListGrouped = [];
 
   window.onload = async function() {
@@ -670,7 +674,7 @@
     } else {
       document.querySelectorAll('.admin-tab')[2].classList.add('active');
       document.getElementById('admin-status').classList.remove('hidden');
-      await window.loadAdminStatus(); // DB에서 로드 후 정렬
+      await window.loadAdminStatus(); 
     }
   }
 
@@ -728,7 +732,6 @@
     alert("저장되었습니다.");
   }
 
-  // ★ 관리자 현황 로드 (DB에서 가져와서 userListGrouped에 저장)
   window.loadAdminStatus = async function() {
     const tbody = document.getElementById('admin-table-body');
     tbody.innerHTML = '<tr><td colspan="8">데이터를 불러오는 중입니다...</td></tr>';
@@ -762,7 +765,6 @@
       window.userListGrouped = Object.values(userMap);
       document.getElementById('admin-unique-count').innerText = `총 실제 응시자: ${window.userListGrouped.length}명 (중복 제외)`;
       
-      // 데이터 로드 후 즉시 정렬 적용
       window.applySorting();
 
     } catch (e) {
@@ -771,7 +773,6 @@
     }
   }
 
-  // ★ 정렬 적용 및 렌더링 (DB 통신 없이 즉각 반영)
   window.applySorting = function() {
     const mode = document.getElementById('sort-mode').value;
     const tbody = document.getElementById('admin-table-body');
@@ -781,17 +782,13 @@
       return;
     }
 
-    // 배열 복사 후 정렬
     let sortedList = [...window.userListGrouped];
 
     if (mode === 'dateDesc') {
-      // 최신 날짜순 (내림차순)
       sortedList.sort((a, b) => b.latestDate - a.latestDate);
     } else if (mode === 'scoreDesc') {
-      // 점수 높은순 (내림차순)
       sortedList.sort((a, b) => b.maxScore - a.maxScore);
     } else if (mode === 'regionAsc') {
-      // 지역/가나다순 (오름차순)
       sortedList.sort((a, b) => {
         if (a.info.region < b.info.region) return -1;
         if (a.info.region > b.info.region) return 1;
@@ -813,7 +810,6 @@
       
       const orderStr = u.attempts[0].orderMode === 'sequential' ? '순서' : '랜덤';
 
-      // 날짜 포맷 (예: 05.10 14:30)
       const dateObj = new Date(u.latestDate * 1000);
       const m = (dateObj.getMonth() + 1).toString().padStart(2, '0');
       const d = dateObj.getDate().toString().padStart(2, '0');
@@ -887,7 +883,7 @@
 
       if(item.type === 'essay') {
         let ansHtml = `<div style="color:#555; font-size:14px; margin-bottom:5px;">[응시자 작성 내용]</div>`;
-        ansHtml += `<div style="padding:8px; border-radius:4px; border:1px solid ${item.isCorrect ? '#4CAF50' : '#e91e63'}; background:${item.isCorrect ? '#e8f5e9' : '#ffebee'};">${item.userAnswer || '(빈칸)'}</div>`;
+        ansHtml += `<div style="padding:8px; border-radius:4px; border:1px solid ${item.isCorrect ? '#4CAF50' : '#e91e63'}; background:${item.isCorrect ? '#e8f5e9' : '#ffebee'}; line-height:1.6;">${item.userAnswer || '(미작성)'}</div>`;
         if(!item.isCorrect) ansHtml += `<div style="margin-top:5px; font-size:13px; color:#e91e63; font-weight:bold;">정답: ${item.correctAnswer}</div>`;
         qBox.innerHTML = titleSpan + ansHtml;
         contentDiv.appendChild(qBox);
