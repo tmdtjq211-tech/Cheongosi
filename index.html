@@ -549,7 +549,7 @@ window.submitExam=async function(){
 
   // Firebase 저장
   try{
-    await addDoc(collection(DB,"examResults"),{
+    await addDoc(collection(DB,"examResultsRev"),{
       region:CU.region,department:CU.department,district:CU.district,name:CU.name,
       difficulty:CU.difficulty,orderMode:CU.orderMode,score:displayScore,
       paperData:pD,timestamp:new Date()
@@ -633,7 +633,7 @@ window.loadAdminStatus=async function(){
   t.innerHTML='<tr><td colspan="8">데이터를 불러오는 중입니다...</td></tr>';
   AR=[];
   try{
-    let q=query(collection(DB,"examResults"),orderBy("timestamp","desc"));
+    let q=query(collection(DB,"examResultsRev"),orderBy("timestamp","desc"));
     let qS=await getDocs(q);
     let uM={};
     qS.forEach(d=>{
