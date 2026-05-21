@@ -14,16 +14,17 @@ let _0xES={isOpen:!0,startCh:7,endCh:12,groupedVerses:"",lowBlankCnt:24,lowEssay
 window.onload=async function(){try{let _0xc=await _0xGD(_0xD(_0xDB,"\x73\x65\x74\x74\x69\x6e\x67\x73","\x65\x78\x61\x6d\x43\x6f\x6e\x66\x69\x67"));if(_0xc.exists())_0xES={..._0xES,..._0xc.data()};let _0xb=await _0xGD(_0xD(_0xDB,"\x73\x65\x74\x74\x69\x6e\x67\x73","\x6d\x61\x6e\x75\x61\x6c\x42\x6c\x61\x6e\x6b\x73"));if(_0xb.exists())_0xCB=_0xb.data()}catch(e){}_$('loading-screen').classList.add('hidden');_0xES.isOpen?_$('login-screen').classList.remove('hidden'):_$('closed-screen').classList.remove('hidden')};
 window.shAL=function(){_$('loading-screen').classList.add('hidden');_$('closed-screen').classList.add('hidden');_$('login-screen').classList.add('hidden');_$('exam-screen').classList.add('hidden');_$('result-screen').classList.add('hidden');_$('admin-screen').classList.add('hidden');_$('admin-login-screen').classList.remove('hidden')};
 window.adminLogin=async function(){try{let r=await _0xSI(_0xAU,_0xGP);if(r.user.email.toLowerCase()==="\x63\x6a\x73\x72\x68\x74\x6c\x40\x67\x6d\x61\x69\x6c\x2e\x63\x6f\x6d"){window.enterAdminMode()}else{alert("관리자 권한이 없습니다.");_0xAU.signOut()}}catch(e){alert("로그인에 실패했습니다.")}};
-window.startExam=function(){let r=_$('region').value.trim(),dp=_$('department').value.trim(),di=_$('district').value.trim(),n=_$('name').value.trim(),df=_$('difficulty').value,om=_$('order-mode').value;if(r==="49"&&dp==="49"&&di==="49"&&n==="49")return window.shAL();if(!r||!dp||!di||!n)return alert("모든 정보를 입력해주세요.");_0xCU={region:r,department:dp,district:di,name:n,difficulty:df,orderMode:om};_$('user-info-display').innerText=`${r} / ${dp} / ${di} / ${n}`;_$('diff-display').innerText=df;_$('order-display').innerText=(om==='random'?'문제 섞기(랜덤)':'말씀 순서대로');_$('pt-blank').innerText=_0xES.ptBlank;_$('pt-essay').innerText=_0xES.ptEssay;_0xGQ(df);_$('login-screen').classList.add('hidden');_$('exam-screen').classList.remove('hidden')};
+window.startExam=function(){let r=_$('region').value.trim(),dp=_$('department').value.trim(),di=_$('district').value.trim(),n=_$('name').value.trim(),df=_$('difficulty').value.trim(),om=_$('order-mode').value;if(r==="49"&&dp==="49"&&di==="49"&&n==="49")return window.shAL();if(!r||!dp||!di||!n)return alert("모든 정보를 입력해주세요.");_0xCU={region:r,department:dp,district:di,name:n,difficulty:df,orderMode:om};_$('user-info-display').innerText=`${r} / ${dp} / ${di} / ${n}`;_$('diff-display').innerText=df;_$('order-display').innerText=(om==='random'?'문제 섞기(랜덤)':'말씀 순서대로');_$('pt-blank').innerText=_0xES.ptBlank;_$('pt-essay').innerText=_0xES.ptEssay;_0xGQ(df);_$('login-screen').classList.add('hidden');_$('exam-screen').classList.remove('hidden')};
 window.retakeExam=function(){_$('result-screen').classList.add('hidden');_0xGQ(_0xCU.difficulty);_$('exam-screen').classList.remove('hidden');window.scrollTo(0,0)};
 function _0xPE(g){let t=[];if(!g)return t;let c=g.replace(/계/g,'').replace(/\s+/g,'').replace(/~/g,'-'),i=c.split(',');i.forEach(m=>{let p=m.split(':');if(p.length===2){let ch=parseInt(p[0]),r=p[1].split('-');if(r.length===2)t.push({isGroup:!0,ch:ch,startVs:parseInt(r[0]),endVs:parseInt(r[1])});else t.push({isGroup:!1,ch:ch,vs:parseInt(r[0])})}});return t}
 
 function _0xGQ(df){
     let c=_$('question-container');c.innerHTML='';
+    let isHigh = df.includes('고급');
     let nB=0,nE=0;
-    if(df==='초급'){nB=parseInt(_0xES.lowBlankCnt)||0;nE=parseInt(_0xES.lowEssayCnt)||0}
-    else if(df==='중급'){nB=parseInt(_0xES.midBlankCnt)||0;nE=parseInt(_0xES.midEssayCnt)||0}
-    else if(df==='고급'){nB=0;nE=parseInt(_0xES.highEssayCnt)||30}
+    if(df.includes('초급')){nB=parseInt(_0xES.lowBlankCnt)||0;nE=parseInt(_0xES.lowEssayCnt)||0;}
+    else if(df.includes('중급')){nB=parseInt(_0xES.midBlankCnt)||0;nE=parseInt(_0xES.midEssayCnt)||0;}
+    else if(isHigh){nB=0;nE=parseInt(_0xES.highEssayCnt)||30;}
 
     let fQ=[],uK=new Set(),eT=_0xPE(_0xES.groupedVerses||"");eT.sort(()=>Math.random()-0.5);
     let aEC=Math.min(nE,eT.length),sE=eT.slice(0,aEC);
@@ -51,7 +52,7 @@ function _0xGQ(df){
         exE.forEach(b=>{fQ.push({type:'essay',ch:b.ch,verseStr:`${b.vs}`,text:b.text,vsCount:1});uK.add(`${b.ch}:${b.vs}`)})
     }
 
-    if(df !== '고급' && nB > 0){
+    if(!isHigh && nB > 0){
         if(_0xES.blankMode==='manual'){
             let mK=Object.keys(_0xCB||{}),pB=bC.filter(v=>mK.includes(`${v.ch}:${v.vs}`)),rmB=bC.filter(v=>!mK.includes(`${v.ch}:${v.vs}`));
             pB.sort(()=>Math.random()-0.5);rmB.sort(()=>Math.random()-0.5);
@@ -71,7 +72,13 @@ function _0xGQ(df){
         let qB=document.createElement('div');qB.className='question-box';
         let qT=document.createElement('div');qT.className='question-title';qT.innerText=`${qI}. 계시록 ${v.ch}장 ${v.verseStr}절`;
         qB.appendChild(qT);
-        if(v.type==='blank'){
+        
+        /* 🔥 가장 중요한 강제 서술형 로직 🔥 */
+        if(isHigh || v.type === 'essay'){
+            let qD=document.createElement('p');qD.style.margin="0 0 10px 0";qD.innerText="위 구절의 전체 말씀을 정확히 기록하시오.";
+            let tA=document.createElement('textarea');tA.className="answer-field";tA.setAttribute('data-answer',v.text);tA.setAttribute('data-type','essay');tA.setAttribute('data-vscount',v.vsCount||1);tA.setAttribute('data-qtitle',qT.innerText);
+            qB.appendChild(qD);qB.appendChild(tA);
+        }else{
             let hT=v.text,eK=`${v.ch}:${v.verseStr}`;
             if(_0xES.blankMode==='manual'&&(_0xCB||{})[eK]){
                 let wB=[..._0xCB[eK]].sort((a,b)=>b.length-a.length);
@@ -81,13 +88,9 @@ function _0xGQ(df){
                 while(bI.length<mC&&bI.length<w.length){let r=Math.floor(Math.random()*w.length);if(!bI.includes(r)&&w[r].length>1)bI.push(r)}
                 bI.forEach(i=>{w[i]=`<input type="text" class="blank-input answer-field" data-answer="${w[i]}" data-type="blank" data-qtitle="${qT.innerText}">`});hT=w.join(' ')
             }
-            let qC=document.createElement('p');qC.style.margin="0";qC.innerHTML=hT;qB.appendChild(qC)
-        }else{
-            let qD=document.createElement('p');qD.style.margin="0 0 10px 0";qD.innerText="위 구절의 전체 말씀을 정확히 기록하시오.";
-            let tA=document.createElement('textarea');tA.className="answer-field";tA.setAttribute('data-answer',v.text);tA.setAttribute('data-type','essay');tA.setAttribute('data-vscount',v.vsCount);tA.setAttribute('data-qtitle',qT.innerText);
-            qB.appendChild(qD);qB.appendChild(tA)
+            let qC=document.createElement('p');qC.style.margin="0";qC.innerHTML=hT;qB.appendChild(qC);
         }
-        c.appendChild(qB);qI++
+        c.appendChild(qB);qI++;
     })
 }
 
