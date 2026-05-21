@@ -7,10 +7,16 @@
 <div id="admin-blanks" class="hidden"><div class="settings-group"><label>해당 장과 절을 선택하세요.</label><div style="display:flex;gap:10px;margin-top:5px;margin-bottom:15px"><select id="blank-ch" style="flex:1" onchange="window.updateVerseSelect()"></select><select id="blank-vs" style="flex:1" onchange="window.renderVersePreview()"></select></div><label>본문 미리보기 (드래그하여 선택하세요)</label><div id="verse-preview"></div><div style="display:flex;gap:10px"><button onclick="window.addManualBlank()">블록(드래그) 영역 빈칸 지정</button><button onclick="window.clearManualBlank()" style="background-color:#e91e63">현재 절 빈칸 초기화</button></div></div><button onclick="window.saveManualBlanksDB()">DB에 빈칸 리스트 덮어쓰기 저장</button><p style="color:#d32f2f;font-size:12px;text-align:center">※ 작업 완료 후 반드시 저장 버튼을 눌러야 반영됩니다.</p></div>
 <div id="admin-status" class="hidden"><div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:10px"><h3 style="margin:0">제출 목록</h3><div style="display:flex;align-items:center;gap:15px"><select id="sort-mode" onchange="window.applySorting()" style="padding:5px;border-radius:4px;border:1px solid #ccc;font-weight:700"><option value="dateDesc">최신 날짜순</option><option value="scoreDesc">최고 점수순</option><option value="regionAsc">지역 / 가나다순</option></select><div id="admin-unique-count" style="font-weight:700;color:#e91e63;font-size:15px">총 실제 응시자: 0명 (중복 제외)</div></div></div><div style="overflow-x:auto"><table><thead><tr><th>부서</th><th>지역/구역</th><th>성함</th><th>난이도(순서)</th><th>점수</th><th>재시험</th><th>응시날짜</th><th>시험지</th></tr></thead><tbody id="admin-table-body"><tr><td colspan="8">데이터를 불러오는 중입니다...</td></tr></tbody></table></div></div></div><button class="admin-trigger" onclick="window.checkAdmin()"></button></div>
 <div id="paper-modal" class="modal-overlay hidden"><div class="modal-content"><span class="modal-close" onclick="window.closeModal()">&times;</span><h2 id="modal-title">시험지 보기</h2><div id="modal-attempts-list" style="margin-bottom:20px"></div><div id="modal-paper-content" style="background:#f4f7f6;padding:15px;border-radius:8px"></div></div></div>
+
+<!-- 깃허브에 올릴 외부 데이터 파일 연동 -->
+<script src="./data.js"></script>
+
 <script type="module">
-import{initializeApp as _0xIA}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";import{getFirestore as _0xGF,doc as _0xD,getDoc as _0xGD,setDoc as _0xSD,collection as _0xC,addDoc as _0xAD,getDocs as _0xGDS,query as _0xQ,orderBy as _0xOB}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";import{getAuth as _0xGA,signInWithPopup as _0xSI,GoogleAuthProvider as _0xGAP}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";import{bibleData as _0xBD}from"./data/bibleData.js";
+import{initializeApp as _0xIA}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";import{getFirestore as _0xGF,doc as _0xD,getDoc as _0xGD,setDoc as _0xSD,collection as _0xC,addDoc as _0xAD,getDocs as _0xGDS,query as _0xQ,orderBy as _0xOB}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";import{getAuth as _0xGA,signInWithPopup as _0xSI,GoogleAuthProvider as _0xGAP}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
 const _$=(i)=>document.getElementById(i),_0xFC={apiKey:"\x41\x49\x7a\x61\x53\x79\x44\x39\x30\x59\x6b\x54\x37\x37\x68\x36\x34\x58\x4f\x66\x7a\x32\x55\x39\x36\x47\x39\x53\x37\x43\x73\x64\x30\x4f\x68\x45\x56\x76\x6b",authDomain:"\x63\x68\x65\x6f\x6e\x67\x6f\x73\x69\x2e\x66\x69\x72\x65\x62\x61\x73\x65\x61\x70\x70\x2e\x63\x6f\x6d",projectId:"\x63\x68\x65\x6f\x6e\x67\x6f\x73\x69",storageBucket:"\x63\x68\x65\x6f\x6e\x67\x6f\x73\x69\x2e\x66\x69\x72\x65\x62\x61\x73\x65\x73\x74\x6f\x72\x61\x67\x65\x2e\x61\x70\x70",messagingSenderId:"\x37\x33\x37\x39\x33\x33\x34\x35\x39\x33\x31",appId:"\x31\x3a\x37\x33\x37\x39\x33\x33\x34\x35\x39\x33\x31\x3a\x77\x65\x62\x3a\x31\x39\x34\x34\x64\x65\x66\x32\x38\x35\x32\x35\x63\x32\x34\x62\x63\x32\x62\x37\x38\x65"},_0xAPP=_0xIA(_0xFC),_0xDB=_0xGF(_0xAPP),_0xAU=_0xGA(_0xAPP),_0xGP=new _0xGAP();
 let _0xES={isOpen:!0,startCh:7,endCh:12,groupedVerses:"",lowBlankCnt:24,lowEssayCnt:6,midBlankCnt:15,midEssayCnt:15,highEssayCnt:30,ptBlank:2,ptEssay:10,blankMode:'random'},_0xCB={},_0xCU={},_0xAR=[];window.userListGrouped=[];
+
 window.onload=async function(){try{let _0xc=await _0xGD(_0xD(_0xDB,"\x73\x65\x74\x74\x69\x6e\x67\x73","\x65\x78\x61\x6d\x43\x6f\x6e\x66\x69\x67"));if(_0xc.exists())_0xES={..._0xES,..._0xc.data()};let _0xb=await _0xGD(_0xD(_0xDB,"\x73\x65\x74\x74\x69\x6e\x67\x73","\x6d\x61\x6e\x75\x61\x6c\x42\x6c\x61\x6e\x6b\x73"));if(_0xb.exists())_0xCB=_0xb.data()}catch(e){}_$('loading-screen').classList.add('hidden');_0xES.isOpen?_$('login-screen').classList.remove('hidden'):_$('closed-screen').classList.remove('hidden')};
 window.shAL=function(){_$('loading-screen').classList.add('hidden');_$('closed-screen').classList.add('hidden');_$('login-screen').classList.add('hidden');_$('exam-screen').classList.add('hidden');_$('result-screen').classList.add('hidden');_$('admin-screen').classList.add('hidden');_$('admin-login-screen').classList.remove('hidden')};
 window.adminLogin=async function(){try{let r=await _0xSI(_0xAU,_0xGP);if(r.user.email.toLowerCase()==="\x63\x6a\x73\x72\x68\x74\x6c\x40\x67\x6d\x61\x69\x6c\x2e\x63\x6f\x6d"){window.enterAdminMode()}else{alert("관리자 권한이 없습니다.");_0xAU.signOut()}}catch(e){alert("로그인에 실패했습니다.")}};
@@ -28,24 +34,22 @@ function _0xGQ(df){
 
     let fQ=[],uK=new Set();
 
-    // ✅ 수정1: 관리자 지정 서술형 절은 셔플/슬라이스 없이 전부 먼저 등록
     let eT=_0xPE(_0xES.groupedVerses||"");
     eT.forEach(t=>{
         if(t.isGroup){
             let cT="";
             for(let v=t.startVs;v<=t.endVs;v++){
-                if(_0xBD[t.ch]&&_0xBD[t.ch][v-1]){cT+=_0xBD[t.ch][v-1]+" ";uK.add(`${t.ch}:${v}`);}
+                if(window.BIBLE&&window.BIBLE[t.ch]&&window.BIBLE[t.ch][v]){cT+=window.BIBLE[t.ch][v]+" ";uK.add(`${t.ch}:${v}`);}
             }
             if(cT)fQ.push({type:'essay',ch:t.ch,verseStr:`${t.startVs}~${t.endVs}`,text:cT.trim(),vsCount:(t.endVs-t.startVs+1)});
         }else{
-            if(_0xBD[t.ch]&&_0xBD[t.ch][t.vs-1]){
-                fQ.push({type:'essay',ch:t.ch,verseStr:`${t.vs}`,text:_0xBD[t.ch][t.vs-1],vsCount:1});
+            if(window.BIBLE&&window.BIBLE[t.ch]&&window.BIBLE[t.ch][t.vs]){
+                fQ.push({type:'essay',ch:t.ch,verseStr:`${t.vs}`,text:window.BIBLE[t.ch][t.vs],vsCount:1});
                 uK.add(`${t.ch}:${t.vs}`);
             }
         }
     });
 
-    // 관리자 지정 절이 nE보다 많으면 랜덤으로 nE개만 유지, uK 재구성
     if(fQ.length>nE){
         fQ.sort(()=>Math.random()-0.5);
         fQ=fQ.slice(0,nE);
@@ -60,23 +64,20 @@ function _0xGQ(df){
         });
     }
 
-    // 서술형/빈칸 후보 풀 구성 (관리자 지정 절 제외)
     let bC=[],sCh=parseInt(_0xES.startCh)||7,eCh=parseInt(_0xES.endCh)||12;
     for(let ch=sCh;ch<=eCh;ch++){
-        if(_0xBD[ch]){
-            _0xBD[ch].forEach((txt,idx)=>{let vs=idx+1;if(!uK.has(`${ch}:${vs}`))bC.push({ch:ch,vs:vs,text:txt});});
+        if(window.BIBLE&&window.BIBLE[ch]){
+            Object.keys(window.BIBLE[ch]).forEach(vsKey=>{let vs=parseInt(vsKey);let txt=window.BIBLE[ch][vsKey];if(!uK.has(`${ch}:${vs}`))bC.push({ch:ch,vs:vs,text:txt});});
         }
     }
     bC.sort(()=>Math.random()-0.5);
 
-    // 서술형이 부족하면 bC에서 보충
     let needE=nE-fQ.length;
     if(needE>0){
         let exE=bC.splice(0,needE);
         exE.forEach(b=>{fQ.push({type:'essay',ch:b.ch,verseStr:`${b.vs}`,text:b.text,vsCount:1});uK.add(`${b.ch}:${b.vs}`);});
     }
 
-    // ✅ 수정2: 고급이면 빈칸 생성 블록 완전히 건너뜀 (type:'blank' 자체가 fQ에 안 들어감)
     if(!isHigh&&nB>0){
         if(_0xES.blankMode==='manual'){
             let mK=Object.keys(_0xCB||{}),pB=bC.filter(v=>mK.includes(`${v.ch}:${v.vs}`)),rmB=bC.filter(v=>!mK.includes(`${v.ch}:${v.vs}`));
@@ -89,18 +90,15 @@ function _0xGQ(df){
         }
     }
 
-    // 정렬
     if(_0xCU.orderMode==='sequential'){
         fQ.sort((a,b)=>{if(a.ch!==b.ch)return a.ch-b.ch;return parseInt(a.verseStr.toString().split('~')[0])-parseInt(b.verseStr.toString().split('~')[0]);});
     }else fQ.sort(()=>Math.random()-0.5);
 
-    // 렌더링
     let qI=1;fQ.forEach(v=>{
         let qB=document.createElement('div');qB.className='question-box';
         let qT=document.createElement('div');qT.className='question-title';qT.innerText=`${qI}. 계시록 ${v.ch}장 ${v.verseStr}절`;
         qB.appendChild(qT);
 
-        // ✅ 수정3: 렌더링은 v.type만으로 판단 (fQ에 blank가 없으면 고급은 100% 서술형)
         if(v.type==='essay'){
             let qD=document.createElement('p');qD.style.margin="0 0 10px 0";qD.innerText="위 구절의 전체 말씀을 정확히 기록하시오.";
             let tA=document.createElement('textarea');tA.className="answer-field";tA.setAttribute('data-answer',v.text);tA.setAttribute('data-type','essay');tA.setAttribute('data-vscount',v.vsCount||1);tA.setAttribute('data-qtitle',qT.innerText);
@@ -126,9 +124,11 @@ window.submitExam=async function(){if(!confirm("답안을 제출하시겠습니�
 window.enterAdminMode=function(){_$('loading-screen').classList.add('hidden');_$('closed-screen').classList.add('hidden');_$('login-screen').classList.add('hidden');_$('exam-screen').classList.add('hidden');_$('result-screen').classList.add('hidden');_$('admin-login-screen').classList.add('hidden');_$('admin-screen').classList.remove('hidden');_$('set-isopen').value=_0xES.isOpen.toString();_$('set-start').value=_0xES.startCh;_$('set-end').value=_0xES.endCh;_$('set-grouped-verses').value=_0xES.groupedVerses||"";_$('set-low-blank').value=_0xES.lowBlankCnt;_$('set-low-essay').value=_0xES.lowEssayCnt;_$('set-mid-blank').value=_0xES.midBlankCnt;_$('set-mid-essay').value=_0xES.midEssayCnt;_$('set-high-essay').value=_0xES.highEssayCnt;_$('set-pt-blank').value=_0xES.ptBlank;_$('set-pt-essay').value=_0xES.ptEssay;_$('set-blank-mode').value=_0xES.blankMode;_0xIMUI()};
 window.checkAdmin=function(){window.shAL()};
 window.switchAdminTab=async function(t){document.querySelectorAll('.admin-tab').forEach(e=>e.classList.remove('active'));_$('admin-settings').classList.add('hidden');_$('admin-blanks').classList.add('hidden');_$('admin-status').classList.add('hidden');if(t==='settings'){document.querySelectorAll('.admin-tab')[0].classList.add('active');_$('admin-settings').classList.remove('hidden')}else if(t==='blanks'){document.querySelectorAll('.admin-tab')[1].classList.add('active');_$('admin-blanks').classList.remove('hidden')}else{document.querySelectorAll('.admin-tab')[2].classList.add('active');_$('admin-status').classList.remove('hidden');await window.loadAdminStatus()}};
-function _0xIMUI(){let cS=_$('blank-ch');cS.innerHTML='';for(let c=parseInt(_0xES.startCh);c<=parseInt(_0xES.endCh);c++){if(_0xBD[c])cS.innerHTML+=`<option value="${c}">${c}장</option>`}window.updateVerseSelect()}
-window.updateVerseSelect=function(){let c=_$('blank-ch').value,vS=_$('blank-vs');vS.innerHTML='';if(_0xBD[c]){_0xBD[c].forEach((v,i)=>{vS.innerHTML+=`<option value="${i+1}">${i+1}절</option>`})}window.renderVersePreview()};
-window.renderVersePreview=function(){let c=_$('blank-ch').value,v=_$('blank-vs').value,k=`${c}:${v}`;if(!_0xBD[c]||!_0xBD[c][v-1])return;let hT=_0xBD[c][v-1];if(_0xCB[k]){let w=[..._0xCB[k]].sort((a,b)=>b.length-a.length);w.forEach(w=>{hT=hT.replaceAll(w,`<mark>${w}</mark>`)})}_$('verse-preview').innerHTML=hT};
+
+function _0xIMUI(){let cS=_$('blank-ch');cS.innerHTML='';for(let c=parseInt(_0xES.startCh);c<=parseInt(_0xES.endCh);c++){if(window.BIBLE&&window.BIBLE[c])cS.innerHTML+=`<option value="${c}">${c}장</option>`}window.updateVerseSelect()}
+window.updateVerseSelect=function(){let c=_$('blank-ch').value,vS=_$('blank-vs');vS.innerHTML='';if(window.BIBLE&&window.BIBLE[c]){Object.keys(window.BIBLE[c]).forEach(vsKey=>{vS.innerHTML+=`<option value="${vsKey}">${vsKey}절</option>`})}window.renderVersePreview()};
+window.renderVersePreview=function(){let c=_$('blank-ch').value,v=_$('blank-vs').value,k=`${c}:${v}`;if(!window.BIBLE||!window.BIBLE[c]||!window.BIBLE[c][v])return;let hT=window.BIBLE[c][v];if(_0xCB[k]){let w=[..._0xCB[k]].sort((a,b)=>b.length-a.length);w.forEach(w=>{hT=hT.replaceAll(w,`<mark>${w}</mark>`)})}_$('verse-preview').innerHTML=hT};
+
 window.addManualBlank=function(){let s=window.getSelection().toString().trim();if(!s)return alert("드래그하여 블록을 지정하세요.");let c=_$('blank-ch').value,v=_$('blank-vs').value,k=`${c}:${v}`;if(!_0xCB[k])_0xCB[k]=[];if(!_0xCB[k].includes(s)){_0xCB[k].push(s);window.getSelection().removeAllRanges();window.renderVersePreview()}};
 window.clearManualBlank=function(){let c=_$('blank-ch').value,v=_$('blank-vs').value;if(confirm(`빈칸을 모두 지우시겠습니까?`)){delete _0xCB[`${c}:${v}`];window.renderVersePreview()}};
 window.saveManualBlanksDB=async function(){await _0xSD(_0xD(_0xDB,"\x73\x65\x74\x74\x69\x6e\x67\x73","\x6d\x61\x6e\x75\x61\x6c\x42\x6c\x61\x6e\x6b\x73"),_0xCB);alert("저장되었습니다.")};
