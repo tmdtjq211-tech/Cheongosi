@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>말씀 실력 점검 시스템 (출석/모의고사 + 관리자 통합)</title>
+<title>말씀 실력 점검 시스템 (맞춤형 출제 + 관리자 통합)</title>
 
 <script src="data.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsdiff/5.1.0/diff.min.js"></script>
@@ -21,12 +21,15 @@ h3{margin-top:0}
 .btn.btn-danger{background:var(--error)}
 .btn.btn-daily{background:linear-gradient(135deg, #f59e0b, #d97706); color:white; font-size:18px; margin-top:15px; box-shadow: 0 4px 6px rgba(0,0,0,0.2);}
 .btn.btn-daily:hover{background:linear-gradient(135deg, #d97706, #b45309);}
+.btn.btn-official{background:#e11d48; color:white; font-size:18px;}
+.btn.btn-official:hover{background:#be123c;}
 .btn-sm{width:auto;padding:6px 12px;font-size:12px;margin-top:0}
 .input-group{margin-bottom:15px; padding:15px; background:#f8fafc; border-radius:8px; border:1px solid #e2e8f0;}
 .input-group label{display:block; margin-bottom:8px; font-weight:700; color:var(--primary)}
 .input-group input, .input-group select {width:100%;padding:10px;border:1px solid #ccc;border-radius:6px;font-size:15px;box-sizing:border-box;}
 .input-group input:focus, .input-group select:focus {border-color:var(--primary);outline:none;}
 .question-box{background:#f8fafc;border:1px solid #e2e8f0;padding:20px;border-radius:10px;margin-bottom:20px}
+.display-box{background:#e0f2fe; border-left:4px solid #0284c7; padding:15px; border-radius:8px; margin-bottom:20px;}
 .q-title{font-weight:700;color:var(--primary);margin-bottom:15px;border-bottom:2px solid var(--secondary);padding-bottom:5px; display:flex; justify-content:space-between}
 textarea{width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;min-height:80px;resize:vertical;box-sizing:border-box;font-size:15px;line-height:1.6;margin-bottom:5px}
 textarea:focus{border-color:var(--primary);outline:0;box-shadow:0 0 0 3px rgba(30,58,138,.1)}
@@ -38,10 +41,16 @@ textarea:focus{border-color:var(--primary);outline:0;box-shadow:0 0 0 3px rgba(3
 .hidden{display:none!important}
 .result-content-box{padding:12px;border-radius:8px;margin-top:5px;line-height:1.6;font-size:15px;word-break:break-all;overflow-wrap:break-word;white-space:pre-wrap;}
 
-/* 빈칸 입력 폼 스타일 추가 */
+/* 빈칸 입력 폼 스타일 */
 .blank-input{width:100px;border:none;border-bottom:2px solid var(--primary);text-align:center;outline:0;font-size:16px;background:transparent;color:#333;font-weight:700;margin:0 5px;padding:2px 5px;transition:border-color .2s;}
 .blank-input:focus{border-bottom:2px solid var(--success)}
 .blank-p{line-height:2.0; font-size:16px;}
+
+/* 랜덤 모의고사 직접 입력 폼 */
+.range-inputs {display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; margin-top: 15px;}
+.range-part {display: flex; align-items: center; gap: 5px; white-space: nowrap;}
+.num-input {width: 55px; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; text-align: center;}
+.range-separator {font-weight: bold; font-size: 18px; color: #666; padding: 0 5px;}
 
 /* 대시보드 */
 .dashboard {background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; padding: 20px; border-radius: 10px; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);}
@@ -53,14 +62,6 @@ textarea:focus{border-color:var(--primary);outline:0;box-shadow:0 0 0 3px rgba(3
 .progress-wrapper {margin-top: 15px; background: rgba(0,0,0,0.3); border-radius: 15px; padding: 4px; position: relative; height: 22px;}
 .progress-bar {height: 100%; background: linear-gradient(90deg, #fbbf24, #f59e0b); border-radius: 12px; width: 0%; transition: width 0.8s ease-in-out;}
 .progress-text {position: absolute; width: 100%; text-align: center; top: 50%; left: 0; transform: translateY(-50%); font-size: 13px; font-weight: bold; color: #fff; text-shadow: 1px 1px 2px rgba(0,0,0,0.6); pointer-events: none;}
-
-/* 피드백 박스 & 히스토리 */
-.feedback-box {background: #f0fdf4; border: 2px solid #bbf7d0; padding: 20px; border-radius: 10px; margin-bottom: 20px;}
-.feedback-title {font-weight: bold; color: #166534; font-size: 16px; margin-bottom: 10px;}
-.feedback-list {color: #15803d; font-size: 14px; padding-left: 20px;}
-.history-item {background: #fff; border: 1px solid #ddd; padding: 15px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;}
-.history-info {flex: 1;}
-.history-score {font-size: 18px; font-weight: bold; color: var(--primary); width: 80px; text-align: right;}
 
 /* 관리자 모드 스타일 */
 .admin-tabs{display:flex;border-bottom:2px solid var(--primary);margin-bottom:20px}
@@ -77,7 +78,6 @@ mark{background:#ffeb3b;font-weight:700;padding:0 4px;border-radius:3px}
 <div class="container">
     
     <div id="screen-loading"><h2 style="padding:40px 0; color:#666;">데이터를 불러오는 중입니다...</h2></div>
-    <div id="screen-closed" class="hidden"><h2 style="color:var(--error); padding:40px 0;">지금은 시험 응시 시간이 아닙니다.</h2></div>
 
     <div id="screen-login" class="hidden">
         <h2>시험 응시자 정보 입력</h2>
@@ -98,7 +98,16 @@ mark{background:#ffeb3b;font-weight:700;padding:0 4px;border-radius:3px}
                 <option value="고급">고급 (100% 서술형)</option>
             </select>
         </div>
-        <button class="btn" onclick="processLogin()">대시보드 입장하기</button>
+        <div class="input-group">
+            <label>희망 출제 문항 수 (본 시험 및 누적 출석용)</label>
+            <input type="number" id="login-qcount" value="25" min="1" max="100">
+            <p style="font-size:12px; color:#666; margin:5px 0 0 0;">※ 응시자가 원하는 만큼 문항 수를 조절할 수 있습니다.</p>
+        </div>
+        
+        <div style="display:flex; flex-direction:column; gap:10px; margin-top:25px;">
+            <button class="btn btn-official" onclick="processLogin('official')">📝 본 시험 응시하기 (관리자 제출용)</button>
+            <button class="btn btn-secondary" onclick="processLogin('practice')">💪 연습 모드 들어가기 (모의고사/출석)</button>
+        </div>
     </div>
 
     <div id="screen-admin-login" class="hidden" style="text-align:center; padding:30px 0;">
@@ -109,12 +118,13 @@ mark{background:#ffeb3b;font-weight:700;padding:0 4px;border-radius:3px}
     </div>
 
     <div id="screen-home" class="hidden">
+        <h2 style="margin-bottom:20px;">💪 자율 연습 모드</h2>
         <div class="dashboard">
             <div class="dash-title">
                 <span>🗓️ 6월 26일 목표 진도표 (7~12장)</span>
                 <span class="dash-dday" id="dash-dday-badge">D-?</span>
             </div>
-            <div style="font-size: 13px; opacity: 0.9;">출석 시험은 <b>무조건 처음(7장 1절)부터 오늘 새 진도까지</b> 누적되어 출제됩니다.</div>
+            <div style="font-size: 13px; opacity: 0.9;">출석 시험은 처음부터 오늘 새 진도까지 범위 내에서 지정한 문항 수만큼 누적 출제됩니다.</div>
             
             <div class="dash-stats">
                 <div class="dash-stat-box">
@@ -136,19 +146,27 @@ mark{background:#ffeb3b;font-weight:700;padding:0 4px;border-radius:3px}
         </div>
 
         <div class="input-group">
-            <span style="font-weight:700; color:var(--primary); font-size:16px;">랜덤 모의고사 (범위 입력)</span>
-            <div style="display:flex; gap:10px; margin-top:10px; align-items:center; justify-content:center;">
-                <input type="number" id="start-ch" style="width:60px; text-align:center;" value="7"> 장
-                <input type="number" id="start-v" style="width:60px; text-align:center;" value="1"> 절
-                <span style="font-weight:bold;">~</span>
-                <input type="number" id="end-ch" style="width:60px; text-align:center;" value="12"> 장
-                <input type="number" id="end-v" style="width:60px; text-align:center;" value="1"> 절
+            <span style="font-weight:700; color:var(--primary); font-size:16px; display:block; text-align:center;">랜덤 모의고사 (범위 입력)</span>
+            
+            <div class="range-inputs">
+                <div class="range-part">
+                    <input type="number" id="start-ch" class="num-input" value="7"> 장
+                    <input type="number" id="start-v" class="num-input" value="1"> 절
+                </div>
+                <span class="range-separator">~</span>
+                <div class="range-part">
+                    <input type="number" id="end-ch" class="num-input" value="12"> 장
+                    <input type="number" id="end-v" class="num-input" value="1"> 절
+                </div>
             </div>
-            <p style="font-size:12px; color:#666; text-align:center; margin-top:10px; margin-bottom:0;">입력한 범위 내에서 <b>최대 25문제가 랜덤으로</b> 출제됩니다.</p>
+            <div style="text-align:center; margin-top:15px;">
+                문항 수: <input type="number" id="mock-qcount" class="num-input" value="25" style="width:70px;"> 문제
+            </div>
         </div>
         
-        <button class="btn" onclick="startCustomExam()">지정 범위 랜덤 시험 시작</button> 
-        <button class="btn btn-outline" onclick="showScreen('screen-history')" style="margin-top:20px;">내 응시 기록 보기</button>
+        <button class="btn" onclick="startCustomExam()">지정 범위 랜덤 모의고사 시작</button> 
+        <button class="btn btn-outline" onclick="showScreen('screen-history')" style="margin-top:20px;">내 자율 연습 기록 보기</button>
+        <button class="btn btn-secondary" onclick="location.reload()" style="margin-top:10px;">처음으로 (로그아웃)</button>
     </div>
 
     <div id="screen-exam" class="hidden">
@@ -156,7 +174,7 @@ mark{background:#ffeb3b;font-weight:700;padding:0 4px;border-radius:3px}
         <div id="exam-info" style="text-align:right;font-size:13px;color:#666;margin-bottom:10px;font-weight:700"></div>
         <div id="question-container"></div>
         <button class="btn" onclick="submitExam()" style="background:var(--success);font-size:18px;margin-top:30px">답안 제출 및 채점하기</button>
-        <button class="btn btn-secondary" onclick="showScreen('screen-home')" style="margin-top:10px;">시험 취소 (홈으로)</button>
+        <button class="btn btn-secondary" onclick="cancelExam()" style="margin-top:10px;">시험 취소 (돌아가기)</button>
     </div>
 
     <div id="screen-result" class="hidden">
@@ -164,49 +182,72 @@ mark{background:#ffeb3b;font-weight:700;padding:0 4px;border-radius:3px}
         <div class="score-board">
             <div id="res-mode-info" style="color:#666;font-size:14px;margin-bottom:5px"></div>
             <div class="score-num" id="res-score">0점</div>
-            <div style="font-size:13px; margin-top:5px; color:#b45309;">※ 결과가 자동으로 관리자에게 전송되었습니다.</div>
+            <div id="res-official-notice" class="hidden" style="font-size:13px; margin-top:8px; color:#b45309; font-weight:bold;">※ 본 시험 결과가 관리자에게 성공적으로 전송되었습니다.</div>
         </div>
-        
-        <div id="result-feedback" class="feedback-box"></div>
         <div id="result-details"></div>
-        
-        <button class="btn btn-outline" onclick="showScreen('screen-home')" style="margin-top:30px;">대시보드로 돌아가기</button>
+        <button class="btn btn-outline" onclick="exitResultScreen()" style="margin-top:30px;">나가기</button>
     </div>
 
     <div id="screen-history" class="hidden">
-        <h2>내 응시 기록 (로컬)</h2>
+        <h2>내 자율 연습 기록 (로컬)</h2>
         <div id="history-list"></div>
-        <button class="btn btn-secondary" onclick="showScreen('screen-home')" style="margin-top:20px;">홈으로 돌아가기</button>
+        <button class="btn btn-secondary" onclick="showScreen('screen-home')" style="margin-top:20px;">연습 대시보드로 돌아가기</button>
     </div>
     
-    <div id="screen-history-detail" class="hidden">
-        <h2>상세 채점 내역</h2>
-        <div id="history-detail-content"></div>
-        <button class="btn btn-secondary" onclick="showScreen('screen-history')" style="margin-top:20px;">목록으로 돌아가기</button>
-    </div>
-
     <div id="screen-admin" class="hidden">
         <h2>관리자 시스템</h2>
         <div class="admin-tabs">
-            <div class="admin-tab active" onclick="switchAdminTab('status')">응시 현황</div>
-            <div class="admin-tab" onclick="switchAdminTab('blanks')">수동 빈칸 관리</div>
+            <div class="admin-tab active" onclick="switchAdminTab('status')">제출 현황</div>
+            <div class="admin-tab" onclick="switchAdminTab('settings')">시험 범위 설정</div>
+            <div class="admin-tab" onclick="switchAdminTab('blanks')">빈칸 관리</div>
         </div>
 
         <div id="admin-status">
-            <h3 style="text-align:left; color:#333;">제출 목록 현황</h3>
-            <div style="overflow-x:auto;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+                <h3 style="margin:0; color:#333;">제출 목록 현황</h3>
+                <span style="font-size:12px; color:#e11d48; font-weight:bold;">※ 본 시험 응시자만 표시</span>
+            </div>
+            <div style="overflow-x:auto; margin-top:10px;">
                 <table>
                     <thead>
-                        <tr><th>부서/지역</th><th>성함</th><th>난이도</th><th>점수</th><th>응시날짜</th></tr>
+                        <tr><th>부서/지역</th><th>성함</th><th>재시험 여부</th><th>점수</th><th>응시날짜</th></tr>
                     </thead>
                     <tbody id="admin-table-body"><tr><td colspan="5">데이터를 불러오는 중입니다...</td></tr></tbody>
                 </table>
             </div>
         </div>
 
+        <div id="admin-settings" class="hidden">
+            <div class="input-group">
+                <label>본 시험 오픈 상태</label>
+                <select id="set-isopen">
+                    <option value="true">오픈 (응시 가능)</option>
+                    <option value="false">마감 (응시 불가)</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>기본 출제 장 범위</label>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <input type="number" id="set-start" placeholder="예: 7"> 장 ~ 
+                    <input type="number" id="set-end" placeholder="예: 12"> 장
+                </div>
+            </div>
+            <div class="input-group" style="background:#fee2e2; border-color:#fca5a5;">
+                <label style="color:#b91c1c;">📝 서술형 강제 출제 구절 지정</label>
+                <input type="text" id="set-essay-verses" placeholder="예: 7:1, 8:2~4">
+                <p style="font-size:12px; color:#991b1b; margin-top:5px;">입력된 구절은 어떤 난이도를 선택해도 무조건 서술형으로 100% 출제됩니다.</p>
+            </div>
+            <div class="input-group" style="background:#e0f2fe; border-color:#bae6fd;">
+                <label style="color:#0369a1;">📖 단순 텍스트 표시 (보여주기용 본문)</label>
+                <input type="text" id="set-display-verses" placeholder="예: 6:1~3">
+                <p style="font-size:12px; color:#075985; margin-top:5px;">입력된 구절은 문제로 나오지 않고 채점 없이 참고용 텍스트 박스로만 상단에 표시됩니다.</p>
+            </div>
+            <button class="btn" onclick="saveAdminSettings()">설정 저장하기</button>
+        </div>
+
         <div id="admin-blanks" class="hidden">
             <div class="input-group">
-                <label>빈칸을 지정할 해당 장/절을 선택하세요.</label>
+                <label>빈칸을 지정할 장/절 선택</label>
                 <div style="display:flex;gap:10px;margin-bottom:15px">
                     <select id="blank-ch" style="flex:1" onchange="updateVerseSelect()"></select>
                     <select id="blank-vs" style="flex:1" onchange="renderVersePreview()"></select>
@@ -219,7 +260,6 @@ mark{background:#ffeb3b;font-weight:700;padding:0 4px;border-radius:3px}
                 </div>
             </div>
             <button class="btn" style="background:#10b981;" onclick="saveManualBlanksDB()">DB에 빈칸 리스트 저장하기</button>
-            <p style="color:var(--error);font-size:12px;text-align:center;">※ 작업 완료 후 반드시 저장 버튼을 눌러야 반영됩니다.</p>
         </div>
         
         <button class="btn btn-outline" onclick="location.reload()" style="margin-top:30px;">관리자 모드 종료</button>
@@ -235,7 +275,6 @@ import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstati
 const FC = {apiKey:"AIzaSyD90YkT77h64XOfz2U96G9S7Csd0OhEVvk",authDomain:"cheongosi.firebaseapp.com",projectId:"cheongosi",storageBucket:"cheongosi.firebasestorage.app",messagingSenderId:"737933459331",appId:"1:737933459331:web:1944def28525c24bc2b78e"};
 const APP = initializeApp(FC), DB = getFirestore(APP), AU = getAuth(APP), GP = new GoogleAuthProvider();
 
-// 전역 변수
 const TARGET_DATE = new Date('2026-06-26T00:00:00');
 const STORAGE_KEY = 'bibleExamHistoryMerged'; 
 let currentQuestions = [];
@@ -243,51 +282,77 @@ let currentModeText = '';
 let todayQuotaCount = 0; 
 let userInfo = {};
 let manualBlanksDB = {}; 
+let examConfig = { isOpen: true, startCh: 7, endCh: 12, essayVerses: "", displayVerses: "" };
+let isOfficialExamMode = false; 
 
 const $ = (id) => document.getElementById(id);
-window.$ = $; // 전역 스코프 허용 (HTML 인라인 핸들러용)
+window.$ = $; 
 
 window.showScreen = (screenId) => {
-    ["screen-loading", "screen-closed", "screen-login", "screen-home", "screen-exam", "screen-result", "screen-history", "screen-history-detail", "screen-admin", "screen-admin-login"].forEach(id => $(id).classList.add("hidden"));
+    ["screen-loading", "screen-login", "screen-home", "screen-exam", "screen-result", "screen-history", "screen-admin", "screen-admin-login"].forEach(id => $(id).classList.add("hidden"));
     $(screenId).classList.remove("hidden");
     window.scrollTo(0, 0);
-    
     if (screenId === 'screen-history') renderHistoryList();
     if (screenId === 'screen-home') updateDashboard();
 };
 
 window.onload = async () => {
-    if (typeof window.BIBLE === 'undefined') {
-        alert("성경 데이터(data.js)를 불러오지 못했습니다.");
-        return;
-    }
+    if (typeof window.BIBLE === 'undefined') return alert("성경 데이터(data.js)를 불러오지 못했습니다.");
     try {
-        // 관리자가 설정한 빈칸 정보 불러오기
+        let cfg = await getDoc(doc(DB, "settings", "examConfig"));
+        if(cfg.exists()) examConfig = { ...examConfig, ...cfg.data() };
         let b = await getDoc(doc(DB, "settings", "manualBlanks"));
         if(b.exists()) manualBlanksDB = b.data();
-    } catch(e) { console.warn("Firebase 연결 지연"); }
-    
+    } catch(e) {}
     window.showScreen('screen-login');
 };
 
-// 0. 로그인 로직 (49 입력 시 관리자 모드)
-window.processLogin = () => {
+// --- 유틸 함수: 문자열 구절 파싱 ("7:1, 8:2~4") ---
+function parseVerseString(str) {
+    let keys = new Set();
+    if(!str) return keys;
+    let parts = str.replace(/\s+/g,'').split(',');
+    parts.forEach(p => {
+        let [ch, vs] = p.split(':');
+        if(vs) {
+            if(vs.includes('~')) {
+                let [s, e] = vs.split('~').map(Number);
+                for(let i=s; i<=e; i++) keys.add(`${ch}:${i}`);
+            } else {
+                keys.add(`${ch}:${vs}`);
+            }
+        }
+    });
+    return keys;
+}
+
+window.processLogin = (mode) => {
     let r = $('login-region').value.trim();
     let d = $('login-dept').value.trim();
     let n = $('login-name').value.trim();
     let diff = $('login-diff').value;
+    let qCount = parseInt($('login-qcount').value) || 25;
 
-    if (r === "49" && d === "49" && n === "49") {
-        return window.showScreen('screen-admin-login');
-    }
-    
+    if (r === "49" && d === "49" && n === "49") return window.showScreen('screen-admin-login');
     if (!r || !d || !n) return alert("응시자 정보를 모두 입력해주세요.");
     
-    userInfo = { region: r, dept: d, name: n, diff: diff };
-    window.showScreen('screen-home');
+    userInfo = { region: r, dept: d, name: n, diff: diff, qCount: qCount };
+
+    if(mode === 'official') {
+        if(!examConfig.isOpen) return alert("현재 본 시험이 마감되어 응시할 수 없습니다.");
+        isOfficialExamMode = true;
+        let pool = getVersesInRange(examConfig.startCh, 1, examConfig.endCh, 999);
+        currentModeText = `[본 시험] 범위: ${examConfig.startCh}장 ~ ${examConfig.endCh}장 (총 ${qCount}문항)`;
+        buildQuestionSet(pool, qCount);
+    } else {
+        isOfficialExamMode = false;
+        window.showScreen('screen-home'); 
+    }
 };
 
-// 관리자 구글 연동
+window.cancelExam = () => { isOfficialExamMode ? location.reload() : window.showScreen('screen-home'); };
+window.exitResultScreen = () => { isOfficialExamMode ? location.reload() : window.showScreen('screen-home'); };
+
 window.adminGoogleLogin = async () => {
     try {
         let r = await signInWithPopup(AU, GP);
@@ -295,20 +360,17 @@ window.adminGoogleLogin = async () => {
             window.showScreen('screen-admin');
             window.loadAdminStatus();
             window.initManualUI();
+            $('set-isopen').value = examConfig.isOpen.toString();
+            $('set-start').value = examConfig.startCh;
+            $('set-end').value = examConfig.endCh;
+            $('set-essay-verses').value = examConfig.essayVerses || "";
+            $('set-display-verses').value = examConfig.displayVerses || "";
         } else {
             alert("관리자 권한이 없습니다.");
             AU.signOut();
         }
     } catch(e) { alert("로그인 실패"); }
 };
-
-// 1. 대시보드 로직
-function getDDay() {
-    let today = new Date();
-    today.setHours(0,0,0,0);
-    let days = Math.ceil((TARGET_DATE.getTime() - today.getTime()) / (1000 * 3600 * 24));
-    return days < 0 ? 0 : days;
-}
 
 function getVersesInRange(sCh, sV, eCh, eV) {
     let verses = [];
@@ -325,197 +387,202 @@ function getVersesInRange(sCh, sV, eCh, eV) {
     return verses;
 }
 
-function getMasteredTargetTitles() {
-    let history = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-    let mastered = new Set();
-    history.forEach(record => {
-        record.details.forEach(det => {
-            if (det.score === 100) mastered.add(det.title);
-        });
-    });
-    return mastered;
-}
-
 function updateDashboard() {
-    let dDay = getDDay();
+    let history = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    let masteredSet = new Set();
+    history.forEach(r => r.details.forEach(det => { if (det.score === 100) masteredSet.add(det.title); }));
+
+    let today = new Date(); today.setHours(0,0,0,0);
+    let dDay = Math.max(0, Math.ceil((TARGET_DATE.getTime() - today.getTime()) / (1000 * 3600 * 24)));
     let allTarget = getVersesInRange(7, 1, 12, 999);
-    let masteredSet = getMasteredTargetTitles();
-    
     let remaining = allTarget.length - masteredSet.size;
     todayQuotaCount = dDay > 0 ? Math.ceil(remaining / dDay) : remaining;
 
     $('dash-dday-badge').innerText = dDay > 0 ? `D-${dDay}` : `D-Day`;
     $('dash-quota').innerText = `${todayQuotaCount}절`;
     $('dash-mastered').innerText = `${masteredSet.size} / ${allTarget.length}절`;
-    
-    let percent = allTarget.length === 0 ? 0 : Math.round((masteredSet.size / allTarget.length) * 100);
-    $('dash-progress-bar').style.width = `${percent}%`;
-    $('dash-progress-text').innerText = `전체 진도율 ${percent}%`;
+    $('dash-progress-bar').style.width = `${allTarget.length===0?0:Math.round((masteredSet.size/allTarget.length)*100)}%`;
+    $('dash-progress-text').innerText = `전체 진도율 ${allTarget.length===0?0:Math.round((masteredSet.size/allTarget.length)*100)}%`;
 }
 
-// 2. 시험 시작 로직 (유형 결정 포함)
-window.startDailyExam = () => {
-    let allTarget = getVersesInRange(7, 1, 12, 999);
-    let masteredSet = getMasteredTargetTitles();
-    let unmastered = allTarget.filter(v => !masteredSet.has(v.title));
+// 시험 풀 구성 및 필터링 로직 (단순표시 & 서술형 강제 포함)
+function buildQuestionSet(pool, qCount) {
+    let forcedEssaySet = parseVerseString(examConfig.essayVerses);
+    let displaySet = parseVerseString(examConfig.displayVerses);
     
-    let newCount = Math.min(todayQuotaCount, unmastered.length);
-    if(newCount === 0) { currentQuestions = allTarget; } 
-    else {
-        let lastToday = unmastered[newCount - 1];
-        let idx = allTarget.findIndex(v => v.title === lastToday.title);
-        currentQuestions = allTarget.slice(0, idx + 1);
+    let displayVerses = [];
+    let scorablePool = [];
+
+    pool.forEach(v => {
+        let k = `${v.c}:${v.v}`;
+        if(displaySet.has(k)) {
+            v.qType = 'display';
+            displayVerses.push(v);
+        } else {
+            scorablePool.push(v);
+        }
+    });
+
+    scorablePool.sort(() => Math.random() - 0.5);
+    
+    let forcedPool = scorablePool.filter(v => forcedEssaySet.has(`${v.c}:${v.v}`));
+    let normalPool = scorablePool.filter(v => !forcedEssaySet.has(`${v.c}:${v.v}`));
+    
+    let selectedScorable = [];
+    // 1. 강제 서술형 우선 할당
+    for(let v of forcedPool) {
+        if(selectedScorable.length < qCount) {
+            v.qType = 'essay';
+            v.isForced = true;
+            selectedScorable.push(v);
+        }
     }
-    currentModeText = `[누적 출석] 처음 ~ ${currentQuestions[currentQuestions.length-1].title}`;
+    // 2. 남은 자리를 일반 풀에서 난이도별 배정
+    for(let v of normalPool) {
+        if(selectedScorable.length < qCount) {
+            let type = 'essay';
+            let r = Math.random();
+            if (userInfo.diff === '초급' && r < 0.7) type = 'blank';
+            else if (userInfo.diff === '중급' && r < 0.4) type = 'blank';
+            v.qType = type;
+            selectedScorable.push(v);
+        }
+    }
+
+    // 자연스러운 읽기를 위해 모든 문제 장/절 순으로 정렬
+    currentQuestions = [...displayVerses, ...selectedScorable].sort((a, b) => a.c !== b.c ? a.c - b.c : a.v - b.v);
     prepQuestions();
+}
+
+window.startDailyExam = () => {
+    isOfficialExamMode = false;
+    let allTarget = getVersesInRange(7, 1, 12, 999);
+    let history = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    let masteredSet = new Set();
+    history.forEach(r => r.details.forEach(det => { if(det.score === 100) masteredSet.add(det.title); }));
+    
+    let unmastered = allTarget.filter(v => !masteredSet.has(v.title));
+    let pool = allTarget.slice(0, allTarget.findIndex(v => v.title === (unmastered[Math.min(todayQuotaCount, unmastered.length) - 1] || allTarget[allTarget.length-1]).title) + 1);
+    
+    currentModeText = `[누적 출석] 처음 ~ ${pool[pool.length-1].title}`;
+    buildQuestionSet(pool, userInfo.qCount); // 누적출석도 로그인 시 입력한 문항수 적용
 };
 
 window.startCustomExam = () => {
+    isOfficialExamMode = false;
     let sCh=parseInt($('start-ch').value), sV=parseInt($('start-v').value);
     let eCh=parseInt($('end-ch').value), eV=parseInt($('end-v').value);
-    let target = getVersesInRange(sCh, sV, eCh, eV);
-    target.sort(() => Math.random() - 0.5);
-    currentQuestions = target.slice(0, 25);
+    let mockQCount = parseInt($('mock-qcount').value) || 25;
+    
+    let pool = getVersesInRange(sCh, sV, eCh, eV);
     currentModeText = `[랜덤 모의고사] ${sCh}장${sV}절 ~ ${eCh}장${eV}절`;
-    prepQuestions();
+    buildQuestionSet(pool, mockQCount);
 };
 
 function prepQuestions() {
     $('exam-info').innerText = `${currentModeText} | 난이도: ${userInfo.diff}`;
     let html = '';
+    let qIndex = 1;
     
     currentQuestions.forEach((q, idx) => {
-        // 난이도에 따른 타입 결정
-        let type = 'essay';
-        let r = Math.random();
-        if (userInfo.diff === '초급' && r < 0.7) type = 'blank';
-        else if (userInfo.diff === '중급' && r < 0.4) type = 'blank';
-        
-        q.qType = type; // 메타데이터 저장
-
-        html += `<div class="question-box">
-            <div class="q-title"><span>Q${idx + 1}. ${q.title}</span> <span style="font-size:12px; font-weight:normal; background:var(--bg-color); padding:2px 8px; border-radius:4px;">${type==='essay'?'서술형':'빈칸채우기'}</span></div>`;
-        
-        if (type === 'essay') {
-            html += `<textarea id="ans-${idx}" placeholder="말씀 전체를 입력하세요..."></textarea>`;
+        if (q.qType === 'display') {
+            html += `<div class="display-box">
+                <div style="font-weight:bold; color:#0369a1; margin-bottom:5px;">📖 참고 본문 (${q.title})</div>
+                <div style="color:#0f172a; line-height:1.6;">${q.t}</div>
+            </div>`;
         } else {
-            let k = `${q.c}:${q.v}`;
-            let t = q.t;
-            let blanksToScore = [];
+            let label = q.isForced ? '<span style="color:#e11d48; font-weight:bold; font-size:12px;">강제지정 서술형</span>' : (q.qType==='essay'?'서술형':'빈칸채우기');
+            html += `<div class="question-box">
+                <div class="q-title"><span>Q${qIndex++}. ${q.title}</span> <span style="font-size:12px; font-weight:normal; background:var(--bg-color); padding:2px 8px; border-radius:4px;">${label}</span></div>`;
             
-            if (manualBlanksDB[k] && manualBlanksDB[k].length > 0) {
-                // 관리자 수동 지정 빈칸 적용
-                let wList = [...manualBlanksDB[k]].sort((a,b)=>b.length-a.length);
-                wList.forEach((w, i) => {
-                    t = t.replaceAll(w, `<input type="text" class="blank-input b-ans-${idx}" data-correct="${w}">`);
-                    blanksToScore.push(w);
-                });
+            if (q.qType === 'essay') {
+                html += `<textarea id="ans-${idx}" placeholder="말씀 전체를 입력하세요..."></textarea>`;
             } else {
-                // 랜덤 빈칸 자동 생성 (25% 단어 뚫기)
-                let words = t.split(' ');
-                let bCnt = Math.max(1, Math.floor(words.length * 0.25));
-                let bIdxs = [];
-                while(bIdxs.length < bCnt && bIdxs.length < words.length){
-                    let rIdx = Math.floor(Math.random() * words.length);
-                    if(!bIdxs.includes(rIdx) && words[rIdx].length > 1) bIdxs.push(rIdx);
+                let k = `${q.c}:${q.v}`, t = q.t;
+                if (manualBlanksDB[k] && manualBlanksDB[k].length > 0) {
+                    let wList = [...manualBlanksDB[k]].sort((a,b)=>b.length-a.length);
+                    wList.forEach((w) => { t = t.replaceAll(w, `<input type="text" class="blank-input b-ans-${idx}" data-correct="${w}">`); });
+                } else {
+                    let words = t.split(' '), bCnt = Math.max(1, Math.floor(words.length * 0.25)), bIdxs = [];
+                    while(bIdxs.length < bCnt && bIdxs.length < words.length){
+                        let rIdx = Math.floor(Math.random() * words.length);
+                        if(!bIdxs.includes(rIdx) && words[rIdx].length > 1) bIdxs.push(rIdx);
+                    }
+                    bIdxs.forEach(i => {
+                        let cleanWord = words[i].replace(/[.,?!]/g,'');
+                        words[i] = words[i].replace(cleanWord, `<input type="text" class="blank-input b-ans-${idx}" data-correct="${cleanWord}">`);
+                    });
+                    t = words.join(' ');
                 }
-                bIdxs.forEach(i => {
-                    let cleanWord = words[i].replace(/[.,?!]/g,'');
-                    words[i] = words[i].replace(cleanWord, `<input type="text" class="blank-input b-ans-${idx}" data-correct="${cleanWord}">`);
-                    blanksToScore.push(cleanWord);
-                });
-                t = words.join(' ');
+                html += `<p class="blank-p">${t}</p>`;
             }
-            q.blanksToScore = blanksToScore; // 정답 검증용 배열
-            html += `<p class="blank-p">${t}</p>`;
+            html += `</div>`;
         }
-        html += `</div>`;
     });
-    
     $('question-container').innerHTML = html;
     window.showScreen('screen-exam');
 }
 
-// 3. 채점 및 제출
 window.submitExam = async () => {
     if(!confirm("답안을 제출하시겠습니까?")) return;
     
-    let totalScore = 0;
+    let totalScore = 0, scorableCount = 0;
     let recordDetails = [];
-    let weakCh = {};
     
     currentQuestions.forEach((q, idx) => {
-        let isCorrect = false;
-        let uAnsText = "";
-        let scoreForQ = 0;
-
+        if(q.qType === 'display') return; // 보여주기용은 채점 제외
+        scorableCount++;
+        
+        let isCorrect = false, uAnsText = "", scoreForQ = 0;
         if (q.qType === 'essay') {
             let uAns = $(`ans-${idx}`).value.trim();
             uAnsText = uAns;
-            let uC = uAns.replace(/[\s.,?!'"]/g, '');
-            let cC = q.t.replace(/[\s.,?!'"]/g, '');
+            let uC = uAns.replace(/[\s.,?!'"]/g, ''), cC = q.t.replace(/[\s.,?!'"]/g, '');
             if (uC === cC && uC.length > 0) { isCorrect = true; scoreForQ = 100; }
         } else {
-            let inputs = document.querySelectorAll(`.b-ans-${idx}`);
-            let correctCnt = 0;
-            let ansArr = [];
+            let inputs = document.querySelectorAll(`.b-ans-${idx}`), correctCnt = 0, ansArr = [];
             inputs.forEach(inp => {
-                let u = inp.value.trim();
-                ansArr.push(u);
+                let u = inp.value.trim(); ansArr.push(u);
                 if (u === inp.getAttribute('data-correct')) correctCnt++;
             });
             uAnsText = ansArr.join(', ');
             scoreForQ = inputs.length > 0 ? Math.round((correctCnt / inputs.length) * 100) : 0;
             if (scoreForQ === 100) isCorrect = true;
         }
-
         totalScore += scoreForQ;
-        recordDetails.push({ 
-            title: q.title, 
-            type: q.qType,
-            correct: q.t, 
-            user: uAnsText, 
-            score: scoreForQ 
-        });
-
-        if (!isCorrect) {
-            let ch = q.title.split('장')[0];
-            weakCh[ch] = (weakCh[ch] || 0) + 1;
-        }
+        recordDetails.push({ title: q.title, type: q.qType, correct: q.t, user: uAnsText, score: scoreForQ });
     });
 
-    let avgScore = Math.round(totalScore / currentQuestions.length);
+    let avgScore = scorableCount > 0 ? Math.round(totalScore / scorableCount) : 0;
     
-    // 로컬 저장 (진도용)
     let history = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
     history.unshift({ id: Date.now(), date: new Date().toLocaleString(), modeText: currentModeText, score: avgScore, details: recordDetails });
     localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
 
-    // 파이어베이스 저장 (관리자용)
-    try {
-        await addDoc(collection(DB, "examResultsMerged"), {
-            region: userInfo.region, department: userInfo.dept, name: userInfo.name, difficulty: userInfo.diff,
-            mode: currentModeText, score: avgScore, timestamp: new Date()
-        });
-    } catch(e) { console.error("DB 저장 실패", e); }
+    if(isOfficialExamMode) {
+        try {
+            await addDoc(collection(DB, "examResultsMerged"), {
+                examType: 'official', region: userInfo.region, department: userInfo.dept, name: userInfo.name, 
+                difficulty: userInfo.diff, mode: currentModeText, score: avgScore, timestamp: new Date()
+            });
+            $('res-official-notice').classList.remove('hidden');
+        } catch(e) { console.error("DB 저장 실패", e); }
+    } else {
+        $('res-official-notice').classList.add('hidden');
+    }
 
-    // 화면 렌더링
     $('res-score').innerText = `${avgScore}점`;
     $('res-mode-info').innerText = currentModeText;
     
     let detHtml = '';
     recordDetails.forEach(det => {
         let badge = det.score === 100 ? '<span class="acc-badge acc-high">정답</span>' : '<span class="acc-badge acc-low">오답</span>';
-        
-        let cBox = '';
-        if(det.type === 'essay') {
-            cBox = `<div class="result-content-box" style="background:#f9f9f9; border:1px solid #eee;">${renderDiff(det.user, det.correct)}</div>`;
-        } else {
-            cBox = `<div class="result-content-box" style="background:#f9f9f9; border:1px solid #eee;">작성한 빈칸: <b>${det.user}</b></div>`;
-        }
+        let cBox = det.type === 'essay' 
+            ? `<div class="result-content-box" style="background:#f9f9f9; border:1px solid #eee;">${renderDiff(det.user, det.correct)}</div>`
+            : `<div class="result-content-box" style="background:#f9f9f9; border:1px solid #eee;">작성한 빈칸: <b>${det.user}</b></div>`;
 
         detHtml += `<div class="question-box" style="padding:15px; margin-bottom:15px;">
-            <div style="font-weight:bold; color:var(--primary); margin-bottom:10px;">${det.title} ${badge} <span style="font-size:12px; color:#888;">(${det.type === 'essay'? '서술형':'빈칸'})</span></div>
+            <div style="font-weight:bold; color:var(--primary); margin-bottom:10px;">${det.title} ${badge}</div>
             ${cBox}
             <div class="result-content-box" style="background:#ecfdf5; border:1px solid #a7f3d0; color:#065f46; font-size:13px;">[원본 말씀] ${det.correct}</div>
         </div>`;
@@ -527,8 +594,7 @@ window.submitExam = async () => {
 function renderDiff(userAns, correctAns) {
     if (!userAns) return '<span style="color:#999;">(미입력)</span>';
     if (typeof Diff === 'undefined') return userAns;
-    let diffs = Diff.diffChars(correctAns, userAns);
-    let html = '';
+    let diffs = Diff.diffChars(correctAns, userAns), html = '';
     diffs.forEach(part => {
         if (part.added) html += `<span style="color:var(--error); text-decoration:underline; font-weight:700; background-color:#fee2e2;">${part.value}</span>`;
         else if (part.removed) html += `<span style="color:#d97706; background-color:#fffbeb; font-size:12px; border:1px solid #fef3c7;">[빠짐:${part.value}]</span>`;
@@ -537,57 +603,63 @@ function renderDiff(userAns, correctAns) {
     return html;
 }
 
-// 4. 로컬 히스토리 렌더링
 window.renderHistoryList = () => {
     let history = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
     let html = history.length === 0 ? '<p style="text-align:center;color:#888;">기록이 없습니다.</p>' : '';
     history.forEach(item => {
         html += `<div class="history-item">
-            <div class="history-info">
-                <div style="font-size:12px; color:#888;">${item.date}</div>
-                <div style="font-size:14px; font-weight:bold; color:#333;">${item.modeText}</div>
-            </div>
+            <div class="history-info"><div style="font-size:12px; color:#888;">${item.date}</div><div style="font-size:14px; font-weight:bold; color:#333;">${item.modeText}</div></div>
             <div class="history-score">${item.score}점</div>
         </div>`;
     });
     $('history-list').innerHTML = html;
 };
 
-// 5. 관리자 기능 
 window.switchAdminTab = (t) => {
     document.querySelectorAll('.admin-tab').forEach(e => e.classList.remove('active'));
-    ['admin-status', 'admin-blanks'].forEach(id => $(id).classList.add('hidden'));
+    ['admin-status', 'admin-settings', 'admin-blanks'].forEach(id => $(id).classList.add('hidden'));
     
-    if(t === 'status') {
-        document.querySelectorAll('.admin-tab')[0].classList.add('active');
-        $('admin-status').classList.remove('hidden');
-        window.loadAdminStatus();
-    } else {
-        document.querySelectorAll('.admin-tab')[1].classList.add('active');
-        $('admin-blanks').classList.remove('hidden');
-    }
+    if(t === 'status') { document.querySelectorAll('.admin-tab')[0].classList.add('active'); $('admin-status').classList.remove('hidden'); window.loadAdminStatus(); } 
+    else if(t === 'settings') { document.querySelectorAll('.admin-tab')[1].classList.add('active'); $('admin-settings').classList.remove('hidden'); } 
+    else { document.querySelectorAll('.admin-tab')[2].classList.add('active'); $('admin-blanks').classList.remove('hidden'); }
+};
+
+window.saveAdminSettings = async () => {
+    examConfig.isOpen = $('set-isopen').value === 'true';
+    examConfig.startCh = parseInt($('set-start').value);
+    examConfig.endCh = parseInt($('set-end').value);
+    examConfig.essayVerses = $('set-essay-verses').value.trim();
+    examConfig.displayVerses = $('set-display-verses').value.trim();
+    try { await setDoc(doc(DB, "settings", "examConfig"), examConfig); alert("본 시험 설정이 저장되었습니다."); } catch(e) { alert("저장 실패"); }
 };
 
 window.loadAdminStatus = async () => {
     let t = $('admin-table-body');
     try {
-        let q = query(collection(DB, "examResultsMerged"), orderBy("timestamp", "desc"));
-        let docs = await getDocs(q);
+        let qRef = query(collection(DB, "examResultsMerged"), orderBy("timestamp", "asc"));
+        let docs = await getDocs(qRef);
         t.innerHTML = '';
-        if(docs.empty) return t.innerHTML = '<tr><td colspan="5">기록이 없습니다.</td></tr>';
-        
+        let records = [], attemptMap = {};
         docs.forEach(d => {
             let data = d.data();
+            if(data.examType !== 'official') return; 
+            let key = `${data.region}_${data.department}_${data.name}`;
+            attemptMap[key] = (attemptMap[key] || 0) + 1;
+            data.attemptNumber = attemptMap[key];
+            records.push(data);
+        });
+        if(records.length === 0) return t.innerHTML = '<tr><td colspan="5">본 시험 응시 기록이 없습니다.</td></tr>';
+        
+        records.reverse().forEach(data => {
             let dateStr = data.timestamp ? data.timestamp.toDate().toLocaleString() : '';
+            let retakeBadge = data.attemptNumber > 1 ? `<span style="color:var(--error); font-weight:bold;">O (${data.attemptNumber}회)</span>` : `<span style="color:#888;">X</span>`;
             t.innerHTML += `<tr>
                 <td>${data.department}<br><span style="font-size:11px;color:#888;">${data.region}</span></td>
-                <td style="font-weight:bold;">${data.name}</td>
-                <td>${data.difficulty}</td>
-                <td style="color:var(--success); font-weight:bold;">${data.score}점</td>
-                <td style="font-size:12px;">${dateStr}</td>
+                <td style="font-weight:bold;">${data.name}</td><td>${retakeBadge}</td>
+                <td style="color:var(--success); font-weight:bold;">${data.score}점</td><td style="font-size:12px;">${dateStr}</td>
             </tr>`;
         });
-    } catch(e) { t.innerHTML = '<tr><td colspan="5">데이터 로드 실패</td></tr>'; }
+    } catch(e) {}
 };
 
 window.initManualUI = () => {
@@ -595,15 +667,11 @@ window.initManualUI = () => {
     for(let c = 7; c <= 12; c++) cS.innerHTML += `<option value="${c}">${c}장</option>`;
     window.updateVerseSelect();
 };
-
 window.updateVerseSelect = () => {
     let c = $('blank-ch').value, vS = $('blank-vs'); vS.innerHTML = '';
-    if(window.BIBLE && window.BIBLE[c]) {
-        Object.keys(window.BIBLE[c]).forEach(k => vS.innerHTML += `<option value="${k}">${k}절</option>`);
-    }
+    if(window.BIBLE && window.BIBLE[c]) Object.keys(window.BIBLE[c]).forEach(k => vS.innerHTML += `<option value="${k}">${k}절</option>`);
     window.renderVersePreview();
 };
-
 window.renderVersePreview = () => {
     let c = $('blank-ch').value, v = $('blank-vs').value, k = `${c}:${v}`;
     if(!window.BIBLE || !window.BIBLE[c]) return;
@@ -614,31 +682,15 @@ window.renderVersePreview = () => {
     }
     $('verse-preview').innerHTML = text;
 };
-
 window.addManualBlank = () => {
     let s = window.getSelection().toString().trim();
     if(!s) return alert("빈칸으로 만들 단어를 드래그하세요.");
     let k = `${$('blank-ch').value}:${$('blank-vs').value}`;
     if(!manualBlanksDB[k]) manualBlanksDB[k] = [];
-    if(!manualBlanksDB[k].includes(s)) {
-        manualBlanksDB[k].push(s);
-        window.getSelection().removeAllRanges();
-        window.renderVersePreview();
-    }
+    if(!manualBlanksDB[k].includes(s)) { manualBlanksDB[k].push(s); window.getSelection().removeAllRanges(); window.renderVersePreview(); }
 };
-
-window.clearManualBlank = () => {
-    let k = `${$('blank-ch').value}:${$('blank-vs').value}`;
-    delete manualBlanksDB[k];
-    window.renderVersePreview();
-};
-
-window.saveManualBlanksDB = async () => {
-    try {
-        await setDoc(doc(DB, "settings", "manualBlanks"), manualBlanksDB);
-        alert("빈칸 정보가 파이어베이스 서버에 저장되었습니다.");
-    } catch(e) { alert("저장 실패"); }
-};
+window.clearManualBlank = () => { let k = `${$('blank-ch').value}:${$('blank-vs').value}`; delete manualBlanksDB[k]; window.renderVersePreview(); };
+window.saveManualBlanksDB = async () => { try { await setDoc(doc(DB, "settings", "manualBlanks"), manualBlanksDB); alert("빈칸이 저장되었습니다."); } catch(e) {} };
 </script>
 </body>
 </html>
