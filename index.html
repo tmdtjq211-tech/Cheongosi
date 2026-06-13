@@ -98,11 +98,6 @@ mark{background:#ffeb3b;font-weight:700;padding:0 4px;border-radius:3px}
                 <option value="고급">고급 (100% 서술형)</option>
             </select>
         </div>
-        <div class="input-group">
-            <label>희망 출제 문항 수 (본 시험 및 누적 출석용)</label>
-            <input type="number" id="login-qcount" value="25" min="1" max="100">
-            <p style="font-size:12px; color:#666; margin:5px 0 0 0;">※ 응시자가 원하는 만큼 문항 수를 조절할 수 있습니다.</p>
-        </div>
         
         <div style="display:flex; flex-direction:column; gap:10px; margin-top:25px;">
             <button class="btn btn-official" onclick="processLogin('official')">📝 본 시험 응시하기 (관리자 제출용)</button>
@@ -124,7 +119,7 @@ mark{background:#ffeb3b;font-weight:700;padding:0 4px;border-radius:3px}
                 <span>🗓️ 6월 26일 목표 진도표 (7~12장)</span>
                 <span class="dash-dday" id="dash-dday-badge">D-?</span>
             </div>
-            <div style="font-size: 13px; opacity: 0.9;">출석 시험은 처음부터 오늘 새 진도까지 범위 내에서 지정한 문항 수만큼 누적 출제됩니다.</div>
+            <div style="font-size: 13px; opacity: 0.9;">출석 시험은 처음부터 오늘 새 진도까지의 범위가 누적 출제됩니다.</div>
             
             <div class="dash-stats">
                 <div class="dash-stat-box">
@@ -224,6 +219,7 @@ mark{background:#ffeb3b;font-weight:700;padding:0 4px;border-radius:3px}
                     <option value="true">오픈 (응시 가능)</option>
                     <option value="false">마감 (응시 불가)</option>
                 </select>
+                <p style="font-size:12px; color:#666; margin-top:5px;">※ 마감으로 설정 시 일반 사용자들은 본 시험을 응시할 수 없습니다.</p>
             </div>
             <div class="input-group">
                 <label>기본 출제 장 범위</label>
@@ -231,6 +227,11 @@ mark{background:#ffeb3b;font-weight:700;padding:0 4px;border-radius:3px}
                     <input type="number" id="set-start" placeholder="예: 7"> 장 ~ 
                     <input type="number" id="set-end" placeholder="예: 12"> 장
                 </div>
+            </div>
+            <div class="input-group">
+                <label>본 시험 출제 문항 수</label>
+                <input type="number" id="set-qcount" placeholder="예: 25">
+                <p style="font-size:12px; color:#666; margin-top:5px;">※ 본 시험 응시 시 자동으로 출제될 총 문제 수를 설정합니다.</p>
             </div>
             <div class="input-group" style="background:#fee2e2; border-color:#fca5a5;">
                 <label style="color:#b91c1c;">📝 서술형 강제 출제 구절 지정</label>
@@ -282,7 +283,7 @@ let currentModeText = '';
 let todayQuotaCount = 0; 
 let userInfo = {};
 let manualBlanksDB = {}; 
-let examConfig = { isOpen: true, startCh: 7, endCh: 12, essayVerses: "", displayVerses: "" };
+let examConfig = { isOpen: true, startCh: 7, endCh: 12, qCount: 25, essayVerses: "", displayVerses: "" };
 let isOfficialExamMode = false; 
 
 const $ = (id) => document.getElementById(id);
@@ -331,17 +332,24 @@ window.processLogin = (mode) => {
     let d = $('login-dept').value.trim();
     let n = $('login-name').value.trim();
     let diff = $('login-diff').value;
-    let qCount = parseInt($('login-qcount').value) || 25;
 
+    // 관리자 로그인용 예외 처리 (어떤 상태든 무조건 통과)
     if (r === "49" && d === "49" && n === "49") return window.showScreen('screen-admin-login');
+    
     if (!r || !d || !n) return alert("응시자 정보를 모두 입력해주세요.");
     
-    userInfo = { region: r, dept: d, name: n, diff: diff, qCount: qCount };
+    userInfo = { region: r, dept: d, name: n, diff: diff };
 
     if(mode === 'official') {
-        if(!examConfig.isOpen) return alert("현재 본 시험이 마감되어 응시할 수 없습니다.");
+        // 일반 사용자의 본시험 차단 로직 (마감 시 차단)
+        if(!examConfig.isOpen) {
+            return alert("지금은 응시 할 수 없습니다.");
+        }
+        
         isOfficialExamMode = true;
         let pool = getVersesInRange(examConfig.startCh, 1, examConfig.endCh, 999);
+        let qCount = examConfig.qCount || 25; // 관리자가 설정한 문항 수 사용
+        
         currentModeText = `[본 시험] 범위: ${examConfig.startCh}장 ~ ${examConfig.endCh}장 (총 ${qCount}문항)`;
         buildQuestionSet(pool, qCount);
     } else {
@@ -363,6 +371,7 @@ window.adminGoogleLogin = async () => {
             $('set-isopen').value = examConfig.isOpen.toString();
             $('set-start').value = examConfig.startCh;
             $('set-end').value = examConfig.endCh;
+            $('set-qcount').value = examConfig.qCount || 25;
             $('set-essay-verses').value = examConfig.essayVerses || "";
             $('set-display-verses').value = examConfig.displayVerses || "";
         } else {
@@ -465,7 +474,7 @@ window.startDailyExam = () => {
     let pool = allTarget.slice(0, allTarget.findIndex(v => v.title === (unmastered[Math.min(todayQuotaCount, unmastered.length) - 1] || allTarget[allTarget.length-1]).title) + 1);
     
     currentModeText = `[누적 출석] 처음 ~ ${pool[pool.length-1].title}`;
-    buildQuestionSet(pool, userInfo.qCount); // 누적출석도 로그인 시 입력한 문항수 적용
+    buildQuestionSet(pool, pool.length); // 출석 시험은 해당 풀 전체를 출력
 };
 
 window.startCustomExam = () => {
@@ -628,6 +637,7 @@ window.saveAdminSettings = async () => {
     examConfig.isOpen = $('set-isopen').value === 'true';
     examConfig.startCh = parseInt($('set-start').value);
     examConfig.endCh = parseInt($('set-end').value);
+    examConfig.qCount = parseInt($('set-qcount').value) || 25;
     examConfig.essayVerses = $('set-essay-verses').value.trim();
     examConfig.displayVerses = $('set-display-verses').value.trim();
     try { await setDoc(doc(DB, "settings", "examConfig"), examConfig); alert("본 시험 설정이 저장되었습니다."); } catch(e) { alert("저장 실패"); }
