@@ -367,7 +367,6 @@ window.processLogin = (mode) => {
         currentModeText = `[본 시험] 범위: ${examConfig.startCh}장 ~ ${examConfig.endCh}장 (총 ${qCount}문항)`;
         buildQuestionSet(pool, qCount);
     } else {
-        // 연습모드 진입 (입력칸이 비어있으면 기본값 세팅)
         userInfo = { 
             region: r || "자율", 
             dept: d || "연습", 
@@ -579,11 +578,17 @@ window.submitExam = async () => {
                 let u = inp.value.trim();
                 let c = inp.getAttribute('data-correct');
                 ansArr.push(u);
-                if (u === c) correctCnt++;
+                
+                // 띄어쓰기 및 구두점 무시 채점 로직
+                let uC = u.replace(/[\s.,?!'"]/g, '');
+                let cC = c.replace(/[\s.,?!'"]/g, '');
+                let isCorrectBlank = (uC === cC && uC.length > 0);
+                
+                if (isCorrectBlank) correctCnt++;
                 
                 let span = document.createElement('span');
-                if (u === c) {
-                    span.innerHTML = `<u style="color:var(--correct-blue); font-weight:bold; text-decoration-thickness:2px; text-underline-offset:4px;">${u}</u>`;
+                if (isCorrectBlank) {
+                    span.innerHTML = `<u style="color:var(--correct-blue); font-weight:bold; text-decoration-thickness:2px; text-underline-offset:4px;">${u || c}</u>`;
                 } else {
                     let diffHtml = renderDiff(u, c); 
                     span.innerHTML = `<span style="border-bottom:2px solid var(--error); padding-bottom:2px; margin:0 2px; display:inline-block;">${diffHtml}</span> <span style="color:#059669; font-size:14px; font-weight:bold;">(정답: ${c})</span>`;
@@ -646,14 +651,30 @@ window.submitExam = async () => {
     window.showScreen('screen-result');
 };
 
+// 띄어쓰기/구두점을 무시하는 향상된 Diff 렌더링 함수
 function renderDiff(userAns, correctAns) {
     if (!userAns) return '<span style="color:var(--error); font-weight:bold;">(미입력)</span>';
     if (typeof Diff === 'undefined') return userAns;
+    
     let diffs = Diff.diffChars(correctAns, userAns), html = '';
+    
     diffs.forEach(part => {
-        if (part.added) html += `<span style="color:var(--error); text-decoration:underline; font-weight:700; background-color:#fee2e2;">${part.value}</span>`;
-        else if (part.removed) html += `<span style="color:#d97706; background-color:#fffbeb; font-size:12px; border:1px solid #fef3c7;">[빠짐:${part.value}]</span>`;
-        else html += `<span style="color:var(--correct-blue); font-weight:700;">${part.value}</span>`;
+        // 공백이나 구두점만 있는지 정규식으로 확인
+        let isOnlySpaceOrPunct = /^[\s.,?!'"]+$/.test(part.value);
+
+        if (part.added) {
+            if (isOnlySpaceOrPunct) {
+                html += part.value; // 불필요한 띄어쓰기는 에러 표시 없이 통과
+            } else {
+                html += `<span style="color:var(--error); text-decoration:underline; font-weight:700; background-color:#fee2e2;">${part.value}</span>`;
+            }
+        } else if (part.removed) {
+            if (!isOnlySpaceOrPunct) { // 띄어쓰기 누락은 에러 표시 안 함
+                html += `<span style="color:#d97706; background-color:#fffbeb; font-size:12px; border:1px solid #fef3c7;">[빠짐:${part.value}]</span>`;
+            }
+        } else {
+            html += `<span style="color:var(--correct-blue); font-weight:700;">${part.value}</span>`;
+        }
     });
     return html;
 }
