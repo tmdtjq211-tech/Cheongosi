@@ -43,7 +43,7 @@ textarea:focus{border-color:var(--primary);outline:0;box-shadow:0 0 0 3px rgba(3
 
 /* 빈칸 입력 폼 스타일 */
 .blank-input {
-    width: 70px;
+    min-width: 40px; /* 정답 길이에 따라 유동적으로 변하도록 고정 width 제거 */
     border: none;
     border-bottom: 2px solid var(--primary);
     text-align: center;
@@ -526,7 +526,10 @@ function prepQuestions() {
                 let k = `${q.c}:${q.v}`, t = q.t;
                 if (manualBlanksDB[k] && manualBlanksDB[k].length > 0) {
                     let wList = [...manualBlanksDB[k]].sort((a,b)=>b.length-a.length);
-                    wList.forEach((w) => { t = t.replaceAll(w, `<input type="text" class="blank-input b-ans-${idx}" data-correct="${w}">`); });
+                    wList.forEach((w) => { 
+                        let wWidth = Math.max(40, w.length * 18 + 12);
+                        t = t.replaceAll(w, `<input type="text" class="blank-input b-ans-${idx}" data-correct="${w}" style="width:${wWidth}px;">`); 
+                    });
                 } else {
                     let words = t.split(' '), bCnt = Math.max(1, Math.floor(words.length * 0.25)), bIdxs = [];
                     while(bIdxs.length < bCnt && bIdxs.length < words.length){
@@ -535,7 +538,8 @@ function prepQuestions() {
                     }
                     bIdxs.forEach(i => {
                         let cleanWord = words[i].replace(/[.,?!]/g,'');
-                        words[i] = words[i].replace(cleanWord, `<input type="text" class="blank-input b-ans-${idx}" data-correct="${cleanWord}">`);
+                        let wWidth = Math.max(40, cleanWord.length * 18 + 12);
+                        words[i] = words[i].replace(cleanWord, `<input type="text" class="blank-input b-ans-${idx}" data-correct="${cleanWord}" style="width:${wWidth}px;">`);
                     });
                     t = words.join(' ');
                 }
@@ -579,7 +583,6 @@ window.submitExam = async () => {
                 let c = inp.getAttribute('data-correct');
                 ansArr.push(u);
                 
-                // 띄어쓰기 및 구두점 무시 채점 로직
                 let uC = u.replace(/[\s.,?!'"]/g, '');
                 let cC = c.replace(/[\s.,?!'"]/g, '');
                 let isCorrectBlank = (uC === cC && uC.length > 0);
@@ -651,7 +654,6 @@ window.submitExam = async () => {
     window.showScreen('screen-result');
 };
 
-// 띄어쓰기/구두점을 무시하는 향상된 Diff 렌더링 함수
 function renderDiff(userAns, correctAns) {
     if (!userAns) return '<span style="color:var(--error); font-weight:bold;">(미입력)</span>';
     if (typeof Diff === 'undefined') return userAns;
@@ -659,17 +661,16 @@ function renderDiff(userAns, correctAns) {
     let diffs = Diff.diffChars(correctAns, userAns), html = '';
     
     diffs.forEach(part => {
-        // 공백이나 구두점만 있는지 정규식으로 확인
         let isOnlySpaceOrPunct = /^[\s.,?!'"]+$/.test(part.value);
 
         if (part.added) {
             if (isOnlySpaceOrPunct) {
-                html += part.value; // 불필요한 띄어쓰기는 에러 표시 없이 통과
+                html += part.value; 
             } else {
                 html += `<span style="color:var(--error); text-decoration:underline; font-weight:700; background-color:#fee2e2;">${part.value}</span>`;
             }
         } else if (part.removed) {
-            if (!isOnlySpaceOrPunct) { // 띄어쓰기 누락은 에러 표시 안 함
+            if (!isOnlySpaceOrPunct) { 
                 html += `<span style="color:#d97706; background-color:#fffbeb; font-size:12px; border:1px solid #fef3c7;">[빠짐:${part.value}]</span>`;
             }
         } else {
