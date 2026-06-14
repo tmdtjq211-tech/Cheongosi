@@ -41,10 +41,9 @@ textarea:focus{border-color:var(--primary);outline:0;box-shadow:0 0 0 3px rgba(3
 .hidden{display:none!important}
 .result-content-box{padding:12px;border-radius:8px;margin-top:5px;line-height:1.6;font-size:15px;word-break:break-all;overflow-wrap:break-word;white-space:pre-wrap;}
 
-
-    /* 빈칸 입력 폼 스타일 */
+/* 빈칸 입력 폼 스타일 */
 .blank-input {
-    width: 70px; /* 기존 100px에서 줄여서 한 줄에 여러 개가 들어가도 자연스럽게 */
+    width: 70px;
     border: none;
     border-bottom: 2px solid var(--primary);
     text-align: center;
@@ -53,19 +52,19 @@ textarea:focus{border-color:var(--primary);outline:0;box-shadow:0 0 0 3px rgba(3
     background: transparent;
     color: #333;
     font-weight: 700;
-    margin: 0 3px; /* 좌우 여백을 살짝 줄임 */
+    margin: 0 3px;
     padding: 0 2px;
     transition: border-color .2s;
-    vertical-align: baseline; /* 텍스트 줄(baseline)과 높이를 가지런하게 맞춤 */
-    border-radius: 0; /* 아이폰(Safari) 등에서 입력창이 둥글게 깨지는 현상 방지 */
+    vertical-align: baseline;
+    border-radius: 0;
 }
 .blank-input:focus {
     border-bottom: 2px solid var(--success);
 }
 .blank-p {
-    line-height: 2.2; /* 줄바꿈이 일어날 때 위아래 입력창끼리 겹치지 않도록 간격 확보 */
+    line-height: 2.2;
     font-size: 16px;
-    word-break: keep-all; /* 문장 중간(글자 단위)이 아닌 단어 단위로 예쁘게 줄바꿈되도록 설정 */
+    word-break: keep-all;
 }
 
 /* 랜덤 모의고사 직접 입력 폼 */
@@ -330,7 +329,6 @@ window.onload = async () => {
     window.showScreen('screen-login');
 };
 
-// --- 유틸 함수: 문자열 구절 파싱 ("7:1, 8:2~4") ---
 function parseVerseString(str) {
     let keys = new Set();
     if(!str) return keys;
@@ -355,22 +353,18 @@ window.processLogin = (mode) => {
     let n = $('login-name').value.trim();
     let diff = $('login-diff').value;
 
-    // 관리자 로그인용 예외 처리 (어떤 상태든 무조건 통과)
     if (r === "49" && d === "49" && n === "49") return window.showScreen('screen-admin-login');
-    
     if (!r || !d || !n) return alert("응시자 정보를 모두 입력해주세요.");
     
     userInfo = { region: r, dept: d, name: n, diff: diff };
 
     if(mode === 'official') {
-        // 일반 사용자의 본시험 차단 로직 (마감 시 차단)
         if(!examConfig.isOpen) {
             return alert("지금은 응시 할 수 없습니다.");
         }
-        
         isOfficialExamMode = true;
         let pool = getVersesInRange(examConfig.startCh, 1, examConfig.endCh, 999);
-        let qCount = examConfig.qCount || 25; // 관리자가 설정한 문항 수 사용
+        let qCount = examConfig.qCount || 25; 
         
         currentModeText = `[본 시험] 범위: ${examConfig.startCh}장 ~ ${examConfig.endCh}장 (총 ${qCount}문항)`;
         buildQuestionSet(pool, qCount);
@@ -436,7 +430,6 @@ function updateDashboard() {
     $('dash-progress-text').innerText = `전체 진도율 ${allTarget.length===0?0:Math.round((masteredSet.size/allTarget.length)*100)}%`;
 }
 
-// 시험 풀 구성 및 필터링 로직 (단순표시 & 서술형 강제 포함)
 function buildQuestionSet(pool, qCount) {
     let forcedEssaySet = parseVerseString(examConfig.essayVerses);
     let displaySet = parseVerseString(examConfig.displayVerses);
@@ -460,7 +453,6 @@ function buildQuestionSet(pool, qCount) {
     let normalPool = scorablePool.filter(v => !forcedEssaySet.has(`${v.c}:${v.v}`));
     
     let selectedScorable = [];
-    // 1. 강제 서술형 우선 할당
     for(let v of forcedPool) {
         if(selectedScorable.length < qCount) {
             v.qType = 'essay';
@@ -468,7 +460,6 @@ function buildQuestionSet(pool, qCount) {
             selectedScorable.push(v);
         }
     }
-    // 2. 남은 자리를 일반 풀에서 난이도별 배정
     for(let v of normalPool) {
         if(selectedScorable.length < qCount) {
             let type = 'essay';
@@ -480,7 +471,6 @@ function buildQuestionSet(pool, qCount) {
         }
     }
 
-    // 자연스러운 읽기를 위해 모든 문제 장/절 순으로 정렬
     currentQuestions = [...displayVerses, ...selectedScorable].sort((a, b) => a.c !== b.c ? a.c - b.c : a.v - b.v);
     prepQuestions();
 }
@@ -496,7 +486,7 @@ window.startDailyExam = () => {
     let pool = allTarget.slice(0, allTarget.findIndex(v => v.title === (unmastered[Math.min(todayQuotaCount, unmastered.length) - 1] || allTarget[allTarget.length-1]).title) + 1);
     
     currentModeText = `[누적 출석] 처음 ~ ${pool[pool.length-1].title}`;
-    buildQuestionSet(pool, pool.length); // 출석 시험은 해당 풀 전체를 출력
+    buildQuestionSet(pool, pool.length); 
 };
 
 window.startCustomExam = () => {
@@ -545,6 +535,7 @@ function prepQuestions() {
                     });
                     t = words.join(' ');
                 }
+                q.renderedHTML = t; // 나중에 피드백 재구성을 위해 HTML 저장
                 html += `<p class="blank-p">${t}</p>`;
             }
             html += `</div>`;
@@ -561,27 +552,55 @@ window.submitExam = async () => {
     let recordDetails = [];
     
     currentQuestions.forEach((q, idx) => {
-        if(q.qType === 'display') return; // 보여주기용은 채점 제외
+        if(q.qType === 'display') return; 
         scorableCount++;
         
-        let isCorrect = false, uAnsText = "", scoreForQ = 0;
+        let isCorrect = false, uAnsText = "", scoreForQ = 0, feedbackHTML = "";
+        
         if (q.qType === 'essay') {
             let uAns = $(`ans-${idx}`).value.trim();
             uAnsText = uAns;
             let uC = uAns.replace(/[\s.,?!'"]/g, ''), cC = q.t.replace(/[\s.,?!'"]/g, '');
             if (uC === cC && uC.length > 0) { isCorrect = true; scoreForQ = 100; }
         } else {
-            let inputs = document.querySelectorAll(`.b-ans-${idx}`), correctCnt = 0, ansArr = [];
-            inputs.forEach(inp => {
-                let u = inp.value.trim(); ansArr.push(u);
-                if (u === inp.getAttribute('data-correct')) correctCnt++;
+            let inputs = document.querySelectorAll(`.b-ans-${idx}`);
+            let correctCnt = 0, ansArr = [];
+            
+            // 빈칸 피드백 HTML 재구성 (전체 문맥 + 맞춤형 밑줄/정답 표시)
+            let tempDiv = document.createElement('div');
+            tempDiv.innerHTML = q.renderedHTML;
+            let tempInputs = tempDiv.querySelectorAll('input');
+            
+            inputs.forEach((inp, i) => {
+                let u = inp.value.trim();
+                let c = inp.getAttribute('data-correct');
+                ansArr.push(u);
+                if (u === c) correctCnt++;
+                
+                let span = document.createElement('span');
+                if (u === c) {
+                    span.innerHTML = `<u style="color:var(--correct-blue); font-weight:bold; text-decoration-thickness:2px; text-underline-offset:4px;">${u}</u>`;
+                } else {
+                    let diffHtml = renderDiff(u, c); // 오답 분석(오타, 누락 등)
+                    span.innerHTML = `<span style="border-bottom:2px solid var(--error); padding-bottom:2px; margin:0 2px; display:inline-block;">${diffHtml}</span> <span style="color:#059669; font-size:14px; font-weight:bold;">(정답: ${c})</span>`;
+                }
+                
+                if(tempInputs[i]) {
+                    tempInputs[i].parentNode.replaceChild(span, tempInputs[i]);
+                }
             });
+            
             uAnsText = ansArr.join(', ');
             scoreForQ = inputs.length > 0 ? Math.round((correctCnt / inputs.length) * 100) : 0;
             if (scoreForQ === 100) isCorrect = true;
+            feedbackHTML = tempDiv.innerHTML; // 재구성된 전체 문맥 HTML
         }
+        
         totalScore += scoreForQ;
-        recordDetails.push({ title: q.title, type: q.qType, correct: q.t, user: uAnsText, score: scoreForQ });
+        recordDetails.push({ 
+            title: q.title, type: q.qType, correct: q.t, 
+            user: uAnsText, score: scoreForQ, feedbackHTML: feedbackHTML 
+        });
     });
 
     let avgScore = scorableCount > 0 ? Math.round(totalScore / scorableCount) : 0;
@@ -608,9 +627,11 @@ window.submitExam = async () => {
     let detHtml = '';
     recordDetails.forEach(det => {
         let badge = det.score === 100 ? '<span class="acc-badge acc-high">정답</span>' : '<span class="acc-badge acc-low">오답</span>';
+        
+        // 서술형과 빈칸 결과 표시 분기처리
         let cBox = det.type === 'essay' 
-            ? `<div class="result-content-box" style="background:#f9f9f9; border:1px solid #eee;">${renderDiff(det.user, det.correct)}</div>`
-            : `<div class="result-content-box" style="background:#f9f9f9; border:1px solid #eee;">작성한 빈칸: <b>${det.user}</b></div>`;
+            ? `<div class="result-content-box" style="background:#f9f9f9; border:1px solid #eee; line-height:1.8;">${renderDiff(det.user, det.correct)}</div>`
+            : `<div class="result-content-box" style="background:#f9f9f9; border:1px solid #eee; line-height:2.2; font-size:16px; word-break:keep-all;">${det.feedbackHTML}</div>`;
 
         detHtml += `<div class="question-box" style="padding:15px; margin-bottom:15px;">
             <div style="font-weight:bold; color:var(--primary); margin-bottom:10px;">${det.title} ${badge}</div>
@@ -622,8 +643,9 @@ window.submitExam = async () => {
     window.showScreen('screen-result');
 };
 
+// 정교한 텍스트 비교 로직 (서술형 및 빈칸 내부 오답 분석 공통 사용)
 function renderDiff(userAns, correctAns) {
-    if (!userAns) return '<span style="color:#999;">(미입력)</span>';
+    if (!userAns) return '<span style="color:var(--error); font-weight:bold;">(미입력)</span>';
     if (typeof Diff === 'undefined') return userAns;
     let diffs = Diff.diffChars(correctAns, userAns), html = '';
     diffs.forEach(part => {
