@@ -41,10 +41,32 @@ textarea:focus{border-color:var(--primary);outline:0;box-shadow:0 0 0 3px rgba(3
 .hidden{display:none!important}
 .result-content-box{padding:12px;border-radius:8px;margin-top:5px;line-height:1.6;font-size:15px;word-break:break-all;overflow-wrap:break-word;white-space:pre-wrap;}
 
-/* 빈칸 입력 폼 스타일 */
-.blank-input{width:100px;border:none;border-bottom:2px solid var(--primary);text-align:center;outline:0;font-size:16px;background:transparent;color:#333;font-weight:700;margin:0 5px;padding:2px 5px;transition:border-color .2s;}
-.blank-input:focus{border-bottom:2px solid var(--success)}
-.blank-p{line-height:2.0; font-size:16px;}
+
+    /* 빈칸 입력 폼 스타일 */
+.blank-input {
+    width: 70px; /* 기존 100px에서 줄여서 한 줄에 여러 개가 들어가도 자연스럽게 */
+    border: none;
+    border-bottom: 2px solid var(--primary);
+    text-align: center;
+    outline: 0;
+    font-size: 16px;
+    background: transparent;
+    color: #333;
+    font-weight: 700;
+    margin: 0 3px; /* 좌우 여백을 살짝 줄임 */
+    padding: 0 2px;
+    transition: border-color .2s;
+    vertical-align: baseline; /* 텍스트 줄(baseline)과 높이를 가지런하게 맞춤 */
+    border-radius: 0; /* 아이폰(Safari) 등에서 입력창이 둥글게 깨지는 현상 방지 */
+}
+.blank-input:focus {
+    border-bottom: 2px solid var(--success);
+}
+.blank-p {
+    line-height: 2.2; /* 줄바꿈이 일어날 때 위아래 입력창끼리 겹치지 않도록 간격 확보 */
+    font-size: 16px;
+    word-break: keep-all; /* 문장 중간(글자 단위)이 아닌 단어 단위로 예쁘게 줄바꿈되도록 설정 */
+}
 
 /* 랜덤 모의고사 직접 입력 폼 */
 .range-inputs {display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; margin-top: 15px;}
