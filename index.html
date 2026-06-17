@@ -23,6 +23,8 @@ h3{margin-top:0}
 .btn.btn-daily:hover{background:linear-gradient(135deg, #d97706, #b45309);}
 .btn.btn-official{background:#e11d48; color:white; font-size:18px;}
 .btn.btn-official:hover{background:#be123c;}
+.btn.btn-game{background:linear-gradient(135deg, #10b981, #059669); color:white; font-size:18px; margin-top:15px; box-shadow: 0 4px 6px rgba(0,0,0,0.2);}
+.btn.btn-game:hover{background:linear-gradient(135deg, #059669, #047857);}
 .btn-sm{width:auto;padding:6px 12px;font-size:12px;margin-top:0}
 .input-group{margin-bottom:15px; padding:15px; background:#f8fafc; border-radius:8px; border:1px solid #e2e8f0;}
 .input-group label{display:block; margin-bottom:8px; font-weight:700; color:var(--primary)}
@@ -43,7 +45,7 @@ textarea:focus{border-color:var(--primary);outline:0;box-shadow:0 0 0 3px rgba(3
 
 /* 빈칸 입력 폼 스타일 */
 .blank-input {
-    min-width: 40px; /* 정답 길이에 따라 유동적으로 변하도록 고정 width 제거 */
+    min-width: 40px; 
     border: none;
     border-bottom: 2px solid var(--primary);
     text-align: center;
@@ -93,6 +95,16 @@ td,th{border:1px solid #ddd;padding:10px;text-align:center;}
 th{background:#f8fafc;font-weight:700; color:var(--primary)}
 #verse-preview{padding:15px;background:#fff;border:1px solid #ccc;border-radius:8px;min-height:100px;font-size:16px;line-height:1.8;margin-bottom:10px}
 mark{background:#ffeb3b;font-weight:700;padding:0 4px;border-radius:3px}
+
+/* 줄다리기 게임 전용 스타일 */
+#tug-of-war-board { position: relative; margin: 30px 0; background: #fff; padding: 30px 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 3px solid var(--primary); overflow: hidden; }
+.rope-container { display: flex; align-items: center; justify-content: space-between; position: relative; }
+.rope-line { flex: 1; height: 14px; background: repeating-linear-gradient(45deg, #8b5a2b, #8b5a2b 10px, #a0522d 10px, #a0522d 20px); position: relative; margin: 0 20px; border-radius: 7px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.4); }
+.rope-knot { width: 30px; height: 30px; background: #ef4444; border: 3px solid #fff; border-radius: 50%; position: absolute; top: -8px; left: 50%; transform: translateX(-50%); transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 2px 8px rgba(0,0,0,0.4); z-index: 10; }
+.center-mark { width: 4px; height: 40px; background: rgba(0,0,0,0.2); position: absolute; left: 50%; top: -13px; transform: translateX(-50%); border-radius: 2px; }
+.player-emoji { font-size: 50px; z-index: 5; text-shadow: 0 4px 4px rgba(0,0,0,0.2); transition: transform 0.2s;}
+.player-emoji.pulling { transform: scale(1.2) translateX(-5px); }
+.player-emoji.ai-pulling { transform: scale(1.2) translateX(5px); }
 </style>
 </head>
 <body>
@@ -112,7 +124,7 @@ mark{background:#ffeb3b;font-weight:700;padding:0 4px;border-radius:3px}
             <label>성함</label><input type="text" id="login-name" placeholder="예: 홍길동">
         </div>
         <div class="input-group">
-            <label>응시 난이도 (모의고사 및 출석 출제 형태 결정)</label>
+            <label>응시 난이도 (본 시험 출제 형태 결정)</label>
             <select id="login-diff">
                 <option value="초급">초급 (빈칸 위주 + 서술 조금)</option>
                 <option value="중급">중급 (빈칸 반 + 서술 반)</option>
@@ -161,9 +173,18 @@ mark{background:#ffeb3b;font-weight:700;padding:0 4px;border-radius:3px}
             <button class="btn btn-daily" onclick="startDailyExam()" id="btn-daily-exam">🔥 누적 출석 시험보기 (새 진도 포함)</button>
         </div>
 
+        <button class="btn btn-game" onclick="startTugOfWar()" style="margin-bottom: 25px;">⚔️ AI와 말씀 줄다리기 게임 시작하기</button>
+
         <div class="input-group">
-            <span style="font-weight:700; color:var(--primary); font-size:16px; display:block; text-align:center;">랜덤 모의고사 (범위 입력)</span>
-            
+            <span style="font-weight:700; color:var(--primary); font-size:16px; display:block; text-align:center; margin-bottom:10px;">연습 모드 환경 설정</span>
+            <label style="color:#475569; font-size:14px;">📝 문제 출제 유형 선택</label>
+            <select id="practice-qtype" style="margin-bottom:15px; border-color:var(--primary);">
+                <option value="auto">자동 혼합 (로그인 시 선택한 난이도 기준)</option>
+                <option value="essay" selected>100% 서술형 출제 (전체 타이핑)</option>
+                <option value="blank">100% 빈칸 채우기 출제</option>
+            </select>
+
+            <span style="font-weight:700; color:var(--primary); font-size:16px; display:block; text-align:center; border-top:1px dashed #ccc; padding-top:15px; margin-top:5px;">랜덤 모의고사 범위 지정</span>
             <div class="range-inputs">
                 <div class="range-part">
                     <input type="number" id="start-ch" class="num-input" value="7"> 장
@@ -191,6 +212,34 @@ mark{background:#ffeb3b;font-weight:700;padding:0 4px;border-radius:3px}
         <div id="question-container"></div>
         <button class="btn" onclick="submitExam()" style="background:var(--success);font-size:18px;margin-top:30px">답안 제출 및 채점하기</button>
         <button class="btn btn-secondary" onclick="cancelExam()" style="margin-top:10px;">시험 취소 (돌아가기)</button>
+    </div>
+
+    <div id="screen-game" class="hidden">
+        <h2 style="color:#059669;">⚔️ AI 말씀 줄다리기 ⚔️</h2>
+        <p style="text-align:center; color:#666; font-size:14px; margin-top:-10px;">정답을 맞추면 밧줄을 당겨옵니다. 시간초과 또는 오답 시 AI가 당겨갑니다!</p>
+        
+        <div id="tug-of-war-board">
+            <div class="rope-container">
+                <div class="player-emoji" id="emoji-ai">🤖</div>
+                <div class="rope-line">
+                    <div class="center-mark"></div>
+                    <div class="rope-knot" id="rope-knot"></div>
+                </div>
+                <div class="player-emoji" id="emoji-player">🧑</div>
+            </div>
+        </div>
+
+        <div style="text-align:center; font-size:20px; font-weight:bold; margin-bottom:15px; color:#333;">
+            남은 시간: <span id="game-timer" style="color:var(--error); font-size:26px;">40</span>초
+        </div>
+
+        <div class="question-box" style="border:2px solid #059669; background:#ecfdf5;">
+            <div class="q-title" id="game-q-title" style="font-size:22px; color:#065f46; border-bottom:2px solid #34d399;">7장 1절</div>
+            <textarea id="game-ans" placeholder="말씀 전체를 빠르게 입력 후 엔터(Enter)를 누르세요!" style="height:120px; font-size:16px; font-weight:bold;" onkeydown="handleGameKeyPress(event)"></textarea>
+        </div>
+
+        <button class="btn btn-game" onclick="submitGameAns()">줄 당기기! (제출) 🚀</button>
+        <button class="btn btn-secondary" onclick="exitGame()" style="margin-top:10px;">게임 포기하고 나가기</button>
     </div>
 
     <div id="screen-result" class="hidden">
@@ -311,7 +360,7 @@ const $ = (id) => document.getElementById(id);
 window.$ = $; 
 
 window.showScreen = (screenId) => {
-    ["screen-loading", "screen-login", "screen-home", "screen-exam", "screen-result", "screen-history", "screen-admin", "screen-admin-login"].forEach(id => $(id).classList.add("hidden"));
+    ["screen-loading", "screen-login", "screen-home", "screen-exam", "screen-result", "screen-history", "screen-admin", "screen-admin-login", "screen-game"].forEach(id => $(id).classList.add("hidden"));
     $(screenId).classList.remove("hidden");
     window.scrollTo(0, 0);
     if (screenId === 'screen-history') renderHistoryList();
@@ -456,6 +505,9 @@ function buildQuestionSet(pool, qCount) {
     let forcedPool = scorablePool.filter(v => forcedEssaySet.has(`${v.c}:${v.v}`));
     let normalPool = scorablePool.filter(v => !forcedEssaySet.has(`${v.c}:${v.v}`));
     
+    // 연습모드용 문제 출제유형 선택값 (본 시험이면 자동)
+    let practiceType = isOfficialExamMode ? "auto" : ($('practice-qtype') ? $('practice-qtype').value : "auto");
+
     let selectedScorable = [];
     for(let v of forcedPool) {
         if(selectedScorable.length < qCount) {
@@ -467,9 +519,19 @@ function buildQuestionSet(pool, qCount) {
     for(let v of normalPool) {
         if(selectedScorable.length < qCount) {
             let type = 'essay';
-            let r = Math.random();
-            if (userInfo.diff === '초급' && r < 0.7) type = 'blank';
-            else if (userInfo.diff === '중급' && r < 0.4) type = 'blank';
+            
+            // 연습모드 전용 옵션 적용
+            if (!isOfficialExamMode && practiceType === 'essay') {
+                type = 'essay';
+            } else if (!isOfficialExamMode && practiceType === 'blank') {
+                type = 'blank';
+            } else {
+                // 기본 (로그인 시 난이도 기준 혼합)
+                let r = Math.random();
+                if (userInfo.diff === '초급' && r < 0.7) type = 'blank';
+                else if (userInfo.diff === '중급' && r < 0.4) type = 'blank';
+            }
+            
             v.qType = type;
             selectedScorable.push(v);
         }
@@ -516,7 +578,7 @@ function prepQuestions() {
                 <div style="color:#0f172a; line-height:1.6;">${q.t}</div>
             </div>`;
         } else {
-            let label = q.isForced ? '<span style="color:#e11d48; font-weight:bold; font-size:12px;">강제지정 서술형</span>' : (q.qType==='essay'?'서술형':'빈칸채우기');
+            let label = q.isForced ? '<span style="color:#e11d48; font-weight:bold; font-size:12px;">강제지정 서술형</span>' : (q.qType==='essay'?'서술형(전체타이핑)':'빈칸채우기');
             html += `<div class="question-box">
                 <div class="q-title"><span>Q${qIndex++}. ${q.title}</span> <span style="font-size:12px; font-weight:normal; background:var(--bg-color); padding:2px 8px; border-radius:4px;">${label}</span></div>`;
             
@@ -691,6 +753,106 @@ window.renderHistoryList = () => {
     });
     $('history-list').innerHTML = html;
 };
+
+// ================================
+// 줄다리기 미니게임 로직 추가
+// ================================
+let gamePos = 0; // -5 (AI 승리) ~ +5 (Player 승리)
+let gameTargetVerse = null;
+let gameTimer = null;
+let gameTimeLeft = 40; 
+
+window.startTugOfWar = () => {
+    gamePos = 0;
+    updateRopeUI();
+    window.showScreen('screen-game');
+    nextGameVerse();
+};
+
+window.nextGameVerse = () => {
+    $('game-ans').value = '';
+    $('game-ans').focus();
+    let pool = getVersesInRange(7, 1, 12, 999);
+    gameTargetVerse = pool[Math.floor(Math.random() * pool.length)];
+    $('game-q-title').innerText = `📖 ${gameTargetVerse.title}`;
+    
+    gameTimeLeft = 40; 
+    $('game-timer').innerText = gameTimeLeft;
+    
+    clearInterval(gameTimer);
+    gameTimer = setInterval(() => {
+        gameTimeLeft--;
+        $('game-timer').innerText = gameTimeLeft;
+        if (gameTimeLeft <= 0) {
+            alert("시간 초과! AI가 줄을 당겨갑니다. 🤖💦");
+            updateRope(-1);
+            if(gamePos > -5 && gamePos < 5) nextGameVerse();
+        }
+    }, 1000);
+};
+
+window.handleGameKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        submitGameAns();
+    }
+};
+
+window.submitGameAns = () => {
+    let uAns = $('game-ans').value.trim();
+    let uC = uAns.replace(/[\s.,?!'"]/g, '');
+    let cC = gameTargetVerse.t.replace(/[\s.,?!'"]/g, '');
+    
+    if(uC === cC && uC.length > 0) {
+        alert("✨ 완벽합니다! 영차! 줄을 당겨옵니다. 🧑💪");
+        updateRope(1);
+    } else {
+        alert("💥 오답입니다! AI가 줄을 당겨갑니다.\n\n[정답] " + gameTargetVerse.t);
+        updateRope(-1);
+    }
+    
+    if(gamePos > -5 && gamePos < 5) {
+        nextGameVerse();
+    }
+};
+
+window.updateRope = (delta) => {
+    gamePos += delta;
+    updateRopeUI();
+    
+    // 시각적 효과 (이모지 흔들림)
+    let aiEmoji = $('emoji-ai');
+    let plEmoji = $('emoji-player');
+    if (delta > 0) { plEmoji.classList.add('pulling'); setTimeout(()=>plEmoji.classList.remove('pulling'), 300); }
+    else { aiEmoji.classList.add('ai-pulling'); setTimeout(()=>aiEmoji.classList.remove('ai-pulling'), 300); }
+
+    if (gamePos <= -5) endGame("AI");
+    else if (gamePos >= 5) endGame("Player");
+};
+
+window.updateRopeUI = () => {
+    // gamePos 범위가 -5 ~ +5 일때 left값은 0% ~ 100% 로 매핑
+    let leftPercent = 50 + (gamePos * 10);
+    $('rope-knot').style.left = `${leftPercent}%`;
+};
+
+window.endGame = (winner) => {
+    clearInterval(gameTimer);
+    setTimeout(() => {
+        if (winner === "Player") {
+            alert("🎉 대승리! AI와의 말씀 줄다리기에서 이겼습니다!");
+        } else {
+            alert("💀 패배... AI에게 끌려갔습니다. 다시 도전하세요!");
+        }
+        exitGame();
+    }, 200); // 밧줄 애니메이션 대기용
+};
+
+window.exitGame = () => {
+    clearInterval(gameTimer);
+    window.showScreen('screen-home');
+};
+// ================================
 
 window.switchAdminTab = (t) => {
     document.querySelectorAll('.admin-tab').forEach(e => e.classList.remove('active'));
